@@ -1,7 +1,7 @@
 import api from './api';
 
 export const clientService = {
-  getAll: () => api.get('/person/client').then(res => res.data),
+  getAll: () => api.get('/person/client').then(res => Array.isArray(res.data) ? res.data : res.data.data || []),
   getById: id => api.get(`/person/client/${id}`).then(res => res.data),
   create: data => api.post('/person/client', data).then(res => res.data),
   update: (id, data) => api.put(`/person/client/${id}`, data).then(res => res.data),
@@ -17,7 +17,7 @@ export const supplierService = {
 };
 
 export const gasStationService = {
-  getAll: () => api.get('/person/gas-station').then(res => res.data),
+  getAll: () => api.get('/person/gas-station').then(res => Array.isArray(res.data) ? res.data : res.data.data || []),
   getById: id => api.get(`/person/gas-station/${id}`).then(res => res.data),
   create: data => api.post('/person/gas-station', data).then(res => res.data),
   update: (id, data) => api.put(`/person/gas-station/${id}`, data).then(res => res.data),
@@ -25,11 +25,13 @@ export const gasStationService = {
 };
 
 export const fuelingService = {
-  getAll: () => api.get('/fueling').then(res => res.data),
+  getAll: () => api.get('/fueling').then(res => Array.isArray(res.data) ? res.data : res.data.data || []),
   getById: id => api.get(`/fueling/${id}`).then(res => res.data),
   create: data => api.post('/fueling', data).then(res => res.data),
   update: (id, data) => api.put(`/fueling/${id}`, data).then(res => res.data),
   delete: id => api.delete(`/fueling/${id}`).then(res => res.data),
+  getByMonthYear: (month, year) => api.get(`/fueling?month=${month}&year=${year}`).then(res => Array.isArray(res.data) ? res.data : res.data.data || []),
+  getConsumoByMonthYear: (month, year) => api.get(`/fueling/consumo?month=${month}&year=${year}`).then(res => Array.isArray(res.data) ? res.data : res.data.data || []),
 };
 
 export const driverService = {
@@ -57,7 +59,7 @@ export const receivableService = {
 };
 
 export const vehicleService = {
-  getAll: () => api.get('/vehicle').then(res => res.data.data || res.data),
+  getAll: () => api.get('/vehicle').then(res => Array.isArray(res.data) ? res.data : res.data.data || []),
   getById: id => api.get(`/vehicle/${id}`).then(res => res.data),
   create: data => api.post('/vehicle', data).then(res => res.data),
   update: (id, data) => api.put(`/vehicle/${id}`, data).then(res => res.data),
@@ -70,4 +72,5 @@ export const tripService = {
   create: data => api.post('/trip', data).then(res => res.data),
   update: (id, data) => api.put(`/trip/${id}`, data).then(res => res.data),
   delete: id => api.delete(`/trip/${id}`).then(res => res.data),
+  getByMonthYear: (month, year) => api.get(`/trip?month=${month}&year=${year}`).then(res => res.data),
 };

@@ -23,7 +23,7 @@ import {
   Grid,
 } from '@mui/material';
 import { Add, Edit, Delete, FilterList, Clear } from '@mui/icons-material';
-import { tripService, clientService, driverService, vehicleService, receivablesService } from '../services/mockData';
+import { tripService, clientService, driverService, vehicleService } from '../services/services';
 import DateInputNative from '../components/common/DateInputNative';
 import CurrencyInput from '../components/common/CurrencyInput';
 
@@ -57,19 +57,37 @@ function Trips() {
   });
 
   useEffect(() => {
-    loadData();
+    const fetchData = async () => {
+      await loadData();
+    };
+    fetchData();
   }, []);
 
   useEffect(() => {
     applyFilters();
   }, [trips, filters]);
 
-  const loadData = () => {
-    const allTrips = tripService.getAll();
-    setTrips(allTrips);
-    setClients(clientService.getAll());
-    setDrivers(driverService.getAll());
-    setVehicles(vehicleService.getAll());
+  const loadData = async () => {
+    try {
+      const [tripsData, clientsData, driversData, vehiclesData] = await Promise.all([
+        tripService.getAll(),
+        clientService.getAll(),
+        driverService.getAll(),
+        vehicleService.getAll()
+      ]);
+
+      setTrips(Array.isArray(tripsData) ? tripsData : []);
+      setClients(Array.isArray(clientsData) ? clientsData : []);
+      setDrivers(Array.isArray(driversData) ? driversData : []);
+      setVehicles(Array.isArray(vehiclesData) ? vehiclesData : []);
+    } catch (error) {
+      console.error('Erro ao carregar dados:', error);
+      // Inicializar com arrays vazios em caso de erro
+      setTrips([]);
+      setClients([]);
+      setDrivers([]);
+      setVehicles([]);
+    }
   };
 
   const applyFilters = () => {
@@ -156,16 +174,16 @@ function Trips() {
       const newTrip = tripService.create(formData);
       
       // Criar automaticamente uma conta a receber quando criar nova viagem
-      receivablesService.create({
-        clienteId: formData.clienteId,
-        valor: formData.valorFrete,
-        dataLancamento: formData.dataColeta,
-        dataRecebimento: '',
-        origem: 'Viagem',
-        referencia: newTrip.id,
-        observacao: formData.observacao || '',
-        recebido: false,
-      });
+      //receivableService.create({
+      //  clienteId: formData.clienteId,
+      //  valor: formData.valorFrete,
+      //  dataLancamento: formData.dataColeta,
+      //  dataRecebimento: '',
+      //  origem: 'Viagem',
+      //  referencia: newTrip.id,
+      //  observacao: formData.observacao || '',
+      //  recebido: false,
+      //});
     }
     loadData();
     handleClose();
@@ -180,12 +198,12 @@ function Trips() {
 
   const getClientName = (id) => {
     const client = clients.find(c => c.id === id);
-    return client ? client.nomeRazao : '-';
+    return client ? client.name : '-';
   };
 
   const getDriverName = (id) => {
     const driver = drivers.find(d => d.id === id);
-    return driver ? driver.nome : '-';
+    return driver ? driver.name : '-';
   };
 
   const getVehiclePlaca = (id) => {
@@ -243,7 +261,7 @@ function Trips() {
                 <MenuItem value="">Todos</MenuItem>
                 {clients.map((client) => (
                   <MenuItem key={client.id} value={client.id}>
-                    {client.nomeRazao}
+                    {client.name}
                   </MenuItem>
                 ))}
               </Select>
@@ -261,7 +279,7 @@ function Trips() {
                 <MenuItem value="">Todos</MenuItem>
                 {drivers.map((driver) => (
                   <MenuItem key={driver.id} value={driver.id}>
-                    {driver.nome}
+                    {driver.name}
                   </MenuItem>
                 ))}
               </Select>
@@ -370,7 +388,7 @@ function Trips() {
               >
                 {clients.map((client) => (
                   <MenuItem key={client.id} value={client.id}>
-                    {client.nomeRazao}
+                    {client.name}
                   </MenuItem>
                 ))}
               </Select>
@@ -386,7 +404,7 @@ function Trips() {
               >
                 {drivers.map((driver) => (
                   <MenuItem key={driver.id} value={driver.id}>
-                    {driver.nome}
+                    {driver.name}
                   </MenuItem>
                 ))}
               </Select>
