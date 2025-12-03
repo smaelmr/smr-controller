@@ -74,3 +74,11 @@ export const tripService = {
   delete: id => api.delete(`/trip/${id}`).then(res => res.data),
   getByMonthYear: (month, year) => api.get(`/trip?month=${month}&year=${year}`).then(res => res.data),
 };
+
+export const categoryService = {
+  getAll: () => api.get('/category').then(res => Array.isArray(res.data) ? res.data : res.data.data || []),
+  getById: id => api.get(`/category/${id}`).then(res => res.data),
+  create: data => api.post('/category', data).then(res => res.data),
+  update: (id, data) => api.put(`/category/${id}`, data).then(res => res.data),
+  delete: id => api.delete(`/category/${id}`).then(res => res.data),
+};

@@ -11,8 +11,7 @@ import Drivers from './pages/Drivers';
 import Clients from './pages/Clients';
 import Trips from './pages/Trips';
 import Fuelings from './pages/Fuelings';
-import ContasReceber from './pages/ContasReceber';
-import ContasPagar from './pages/ContasPagar';
+import Financeiro from './pages/Financeiro';
 import { useTheme } from './contexts/ThemeContext';
 
 // Função que cria o tema baseado no modo (claro/escuro)
@@ -65,8 +64,7 @@ function AppContent() {
             <Route path="clients" element={<Clients />} />
             <Route path="trips" element={<Trips />} />
             <Route path="fuelings" element={<Fuelings />} />
-            <Route path="contas-receber" element={<ContasReceber />} />
-            <Route path="contas-pagar" element={<ContasPagar />} />
+            <Route path="financeiro/:tipo" element={<Financeiro />} />
           </Route>
         </Routes>
       </BrowserRouter>

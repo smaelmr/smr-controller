@@ -41,8 +41,8 @@ const menuItems = [
   { text: 'Clientes', icon: <People />, path: '/clients' },
   { text: 'Viagens', icon: <CardTravel />, path: '/trips' },
   { text: 'Abastecimentos', icon: <LocalShipping />, path: '/fuelings' },
-  { text: 'Contas a Receber', icon: <TrendingUp />, path: '/contas-receber' },
-  { text: 'Contas a Pagar', icon: <AccountBalance />, path: '/contas-pagar' },
+  { text: 'Contas a Receber', icon: <TrendingUp />, path: '/financeiro/receber' },
+  { text: 'Contas a Pagar', icon: <AccountBalance />, path: '/financeiro/pagar' },
 ];
 
 function Layout() {
