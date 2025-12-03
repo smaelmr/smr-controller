@@ -9,11 +9,11 @@ export const clientService = {
 };
 
 export const supplierService = {
-  getAll: () => api.get('/supplier').then(res => res.data),
-  getById: id => api.get(`/supplier/${id}`).then(res => res.data),
-  create: data => api.post('/supplier', data).then(res => res.data),
-  update: (id, data) => api.put(`/supplier/${id}`, data).then(res => res.data),
-  delete: id => api.delete(`/supplier/${id}`).then(res => res.data),
+  getAll: () => api.get('/person/supplier').then(res => res.data),
+  getById: id => api.get(`/person/supplier/${id}`).then(res => res.data),
+  create: data => api.post('/person/supplier', data).then(res => res.data),
+  update: (id, data) => api.put(`/person/supplier/${id}`, data).then(res => res.data),
+  delete: id => api.delete(`/person/supplier/${id}`).then(res => res.data),
 };
 
 export const gasStationService = {

@@ -120,6 +120,7 @@ export default function ContasPagar() {
         dataLancamento: '',
         dataVencimento: '',
         dataPagamento: '',
+        numeroParcelas: 1,
         numeroDocumento: '',
         origem: 'Manual',
         referencia: '',
@@ -459,6 +460,21 @@ export default function ContasPagar() {
             <CurrencyInput
               label="Valor"
               name="valor"
+              value={formData.valor}
+              onChange={handleChange}
+              fullWidth
+            />
+
+            <TextField 
+              label="Quantidade de Parcelas" 
+              name="numeroParcelas" 
+              value={formData.numeroParcelas} 
+              onChange={handleChange} fullWidth 
+            />
+
+            <CurrencyInput
+              label="Valor da Parcela"
+              name="valorParcela"
               value={formData.valor}
               onChange={handleChange}
               fullWidth
