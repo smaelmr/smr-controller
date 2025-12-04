@@ -57,6 +57,11 @@ export default function ContasPagar() {
 
   const loadData = async () => {
     try {
+      // Obter mês e ano atual
+      const now = new Date();
+      const currentMonth = now.getMonth() + 1; // getMonth() retorna 0-11
+      const currentYear = now.getFullYear();
+      
       const categoriasData = await categoryService.getAll();
       const allCategorias = Array.isArray(categoriasData) ? categoriasData : categoriasData.data || [];
       
@@ -68,7 +73,7 @@ export default function ContasPagar() {
       if (isPagar) {
         // Contas a Pagar: carregar Fornecedores e Postos
         const [financeData, suppliersData, gasStationsData] = await Promise.all([
-          finance.getPayments(),
+          financeService.getPayments(currentMonth, currentYear),
           supplierService.getAll(),
           gasStationService.getAll(),
         ]);
@@ -79,7 +84,7 @@ export default function ContasPagar() {
       } else {
         // Contas a Receber: carregar Clientes
         const [receivablesData, clientsData] = await Promise.all([
-          service.getReceipts(),
+          financeService.getReceipts(currentMonth, currentYear),
           clientService.getAll(),
         ]);
         setFinance(Array.isArray(receivablesData) ? receivablesData : receivablesData.data || []);
