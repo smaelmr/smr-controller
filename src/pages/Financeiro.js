@@ -42,7 +42,7 @@ export default function ContasPagar() {
     dataInicial: '',
     dataFinal: '',
     fornecedorId: '',
-    categoria: '',
+    categoriaId: '',
   });
 
   useEffect(() => {
@@ -303,13 +303,13 @@ export default function ContasPagar() {
       
       if (type === 'supplier') {
         const supplier = suppliers.find(s => s.id === numericId);
-        return supplier ? supplier.nome : '-';
+        return supplier ? supplier.name : '-';
       } else if (type === 'station') {
         const station = gasStations.find(g => g.id === numericId);
-        return station ? station.nome : '-';
+        return station ? station.name : '-';
       } else if (type === 'client') {
         const client = clients.find(c => c.id === numericId);
-        return client ? client.nome : '-';
+        return client ? client.name : '-';
       }
     }
     
@@ -335,29 +335,11 @@ export default function ContasPagar() {
     return categoria ? categoria.name : '-';
   };
 
-  const getCategoriaColor = (categoriaId) => {
-    if (!categoriaId) return 'default';
-    const categoria = categorias.find(c => c.id === categoriaId);
-    if (!categoria) return 'default';
-    
-    const colors = {
-      'Manutenção': 'primary',
-      'Pneus': 'secondary',
-      'Investimento': 'success',
-      'Empréstimo': 'warning',
-      'Financiamento': 'warning',
-      'Troca de Óleo': 'info',
-      'Abastecimento': 'error',
-      'Salário': 'default'
-    };
-    return colors[categoria.nome] || 'default';
-  };
-
   const allFornecedores = isPagar ? [
-    ...suppliers.map(s => ({ ...s, uniqueId: `supplier-${s.id}` })),
-    ...gasStations.map(g => ({ ...g, uniqueId: `station-${g.id}` }))
+    ...suppliers.map(s => ({ ...s, uniqueId: `${s.pessoaId}` })),
+    ...gasStations.map(g => ({ ...g, uniqueId: `${g.pessoaId}` }))
   ] : [
-    ...clients.map(c => ({ ...c, uniqueId: `client-${c.id}` }))
+    ...clients.map(c => ({ ...c, uniqueId: `client-${c.pessoaId}` }))
   ];
 
   return (
@@ -423,14 +405,14 @@ export default function ContasPagar() {
               <InputLabel>Categoria</InputLabel>
               <Select
                 name="categoria"
-                value={filters.categoria}
+                value={filters.categoriaId}
                 onChange={handleFilterChange}
                 label="Categoria"
               >
                 <MenuItem value="">Todas</MenuItem>
                 {categorias.map((cat) => (
-                  <MenuItem key={cat} value={cat}>
-                    {cat}
+                  <MenuItem key={cat.id} value={cat.id}>
+                    {cat.name}
                   </MenuItem>
                 ))}
               </Select>
@@ -476,8 +458,7 @@ export default function ContasPagar() {
               <TableRow key={item.id}>
                 <TableCell>
                   <Chip 
-                    label={getCategoriaName(item.categoriaId)} 
-                    color={getCategoriaColor(item.categoriaId)} 
+                    label={getCategoriaName(item.categoriaId)}
                     size="small" 
                   />
                 </TableCell>
@@ -531,7 +512,7 @@ export default function ContasPagar() {
               >
                 {categorias.map((cat) => (
                   <MenuItem key={cat.id} value={cat.id}>
-                    {cat.nome}
+                    {cat.name}
                   </MenuItem>
                 ))}
               </Select>
@@ -540,14 +521,14 @@ export default function ContasPagar() {
             <FormControl fullWidth>
               <InputLabel>{isPagar ? 'Fornecedor' : 'Cliente'}</InputLabel>
               <Select
-                name="fornecedorId"
-                value={formData.fornecedorId}
+                name="pessoaId"
+                value={formData.pessoaId}
                 onChange={handleChange}
                 label={isPagar ? 'Fornecedor' : 'Cliente'}
               >
                 {allFornecedores.map((fornecedor) => (
                   <MenuItem key={fornecedor.uniqueId} value={fornecedor.uniqueId}>
-                    {fornecedor.nome}
+                    {fornecedor.name}
                   </MenuItem>
                 ))}
               </Select>
