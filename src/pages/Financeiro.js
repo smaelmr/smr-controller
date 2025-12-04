@@ -7,6 +7,7 @@ import {
 import { Add, Edit, Delete, FilterList, Clear, Payment } from '@mui/icons-material';
 import { financeService, supplierService, gasStationService, clientService, categoryService, paymentMethodService } from '../services/services';
 import CurrencyInput from '../components/common/CurrencyInput';
+import { formatToISO } from '../services/helpers/dateUtils';
 
 export default function ContasPagar() {
   const { tipo } = useParams(); // 'pagar' ou 'receber'
@@ -26,8 +27,8 @@ export default function ContasPagar() {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('');
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({
-    categoriaId: '',
-    pessoaId: '',
+    categoriaId: 0,
+    pessoaId: 0,
     valor: '',
     dataCompetencia: '',
     dataVencimento: '',
@@ -36,7 +37,7 @@ export default function ContasPagar() {
     origem: 'Manual',
     origemId: null,
     observacao: '',
-    numeroParcelas: 1,
+    totalParcelas: 1,
     valorParcela: '',
   });
 
@@ -45,7 +46,7 @@ export default function ContasPagar() {
     dataInicial: '',
     dataFinal: '',
     fornecedorId: '',
-    categoria: '',
+    categoriaId: '',
   });
 
   useEffect(() => {
@@ -83,7 +84,10 @@ export default function ContasPagar() {
           gasStationService.getAll(),
         ]);
 
-        console.log('Dados de finance:', financeData);
+        console.log('Dados de fornecedores:', suppliersData);
+
+        console.log('Dados de postos:', gasStationsData);
+        console.log('Dados de contas a pagar:', financeData);
 
         setFinance(financeData || []);
         setSuppliers(Array.isArray(suppliersData) ? suppliersData : suppliersData.data || []);
@@ -95,12 +99,14 @@ export default function ContasPagar() {
           financeService.getReceipts(currentMonth, currentYear),
           clientService.getAll(),
         ]);
+
+        console.log('Dados de clientes:', clientsData);
+
         setFinance(financeData || []);
         setClients(Array.isArray(clientsData) ? clientsData : clientsData.data || []);
         setSuppliers([]);
         setGasStations([]);
       }
-      console.log('Categorias carregadas:', categoriasFiltradas);
       setCategorias(categoriasFiltradas);
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
@@ -162,7 +168,7 @@ export default function ContasPagar() {
         dataCompetencia: '',
         dataVencimento: '',
         dataRealizacao: '',
-        numeroParcelas: 1,
+        totalParcelas: 1,
         numeroDocumento: '',
         origem: 'Manual',
         origemId: null,
@@ -190,9 +196,9 @@ export default function ContasPagar() {
     }
     
     // Calcular valor da parcela automaticamente
-    if (name === 'valor' || name === 'numeroParcelas') {
+    if (name === 'valor' || name === 'totalParcelas') {
       const valor = name === 'valor' ? parseFloat(newValue) || 0 : parseFloat(formData.valor) || 0;
-      const parcelas = name === 'numeroParcelas' ? parseInt(newValue) || 1 : parseInt(formData.numeroParcelas) || 1;
+      const parcelas = name === 'totalParcelas' ? parseInt(newValue) || 1 : parseInt(formData.totalParcelas) || 1;
       
       if (valor > 0 && parcelas > 0) {
         updatedFormData.valorParcela = (valor / parcelas).toFixed(2);
@@ -209,8 +215,16 @@ export default function ContasPagar() {
       // Preparar dados para envio
       const dataToSend = {
         ...formData,
+        totalParcelas: parseInt(formData.totalParcelas || 1, 10),
+        valor: parseFloat(formData.valor || 0),
+        valorParcela: parseFloat(formData.valorParcela || 0),
         origemId: formData.origem === 'Manual' ? null : formData.origemId,
+        dataCompetencia: formatToISO(formData.dataCompetencia),
+        dataVencimento: formatToISO(formData.dataVencimento),
+        dataRealizacao: formData.dataRealizacao ? formatToISO(formData.dataRealizacao) : null,
       };
+
+      console.log('Dados a serem enviados:', dataToSend);
       
       if (editingId) {
         await financeService.update(editingId, dataToSend);
@@ -344,14 +358,14 @@ export default function ContasPagar() {
       const numericId = parseInt(id);
       
       if (type === 'supplier') {
-        const supplier = suppliers.find(s => s.id === numericId);
-        return supplier ? supplier.nome : '-';
+        const supplier = suppliers.find(s => s.pessoaId === numericId);
+        return supplier ? supplier.name : '-';
       } else if (type === 'station') {
-        const station = gasStations.find(g => g.id === numericId);
-        return station ? station.nome : '-';
+        const station = gasStations.find(g => g.pessoaId === numericId);
+        return station ? station.name : '-';
       } else if (type === 'client') {
-        const client = clients.find(c => c.id === numericId);
-        return client ? client.nome : '-';
+        const client = clients.find(c => c.pessoaId === numericId);
+        return client ? client.name : '-';
       }
     }
     
@@ -359,14 +373,14 @@ export default function ContasPagar() {
     
     // Tentar encontrar em fornecedores/postos (contas a pagar)
     const supplier = suppliers.find(s => s.id === numericId);
-    if (supplier) return supplier.nome;
+    if (supplier) return supplier.name;
     
     const station = gasStations.find(g => g.id === numericId);
-    if (station) return station.nome;
+    if (station) return station.name;
     
     // Tentar encontrar em clientes (contas a receber)
     const client = clients.find(c => c.id === numericId);
-    if (client) return client.nome;
+    if (client) return client.name;
     
     return '-';
   };
@@ -377,29 +391,11 @@ export default function ContasPagar() {
     return categoria ? categoria.name : '-';
   };
 
-  const getCategoriaColor = (categoriaId) => {
-    if (!categoriaId) return 'default';
-    const categoria = categorias.find(c => c.id === categoriaId);
-    if (!categoria) return 'default';
-    
-    const colors = {
-      'Manutenção': 'primary',
-      'Pneus': 'secondary',
-      'Investimento': 'success',
-      'Empréstimo': 'warning',
-      'Financiamento': 'warning',
-      'Troca de Óleo': 'info',
-      'Abastecimento': 'error',
-      'Salário': 'default'
-    };
-    return colors[categoria.nome] || 'default';
-  };
-
   const allFornecedores = isPagar ? [
-    ...suppliers.map(s => ({ ...s, uniqueId: `supplier-${s.id}` })),
-    ...gasStations.map(g => ({ ...g, uniqueId: `station-${g.id}` }))
+    ...suppliers.map(s => ({ ...s, uniqueId: s.pessoaId })),
+    ...gasStations.map(g => ({ ...g, uniqueId: g.pessoaId }))
   ] : [
-    ...clients.map(c => ({ ...c, uniqueId: `client-${c.id}` }))
+    ...clients.map(c => ({ ...c, uniqueId: c.pessoaId }))
   ];
 
   return (
@@ -454,7 +450,7 @@ export default function ContasPagar() {
                 <MenuItem value="">Todos</MenuItem>
                 {allFornecedores.map((fornecedor) => (
                   <MenuItem key={fornecedor.uniqueId} value={fornecedor.uniqueId}>
-                    {fornecedor.nome}
+                    {fornecedor.name}
                   </MenuItem>
                 ))}
               </Select>
@@ -465,14 +461,14 @@ export default function ContasPagar() {
               <InputLabel>Categoria</InputLabel>
               <Select
                 name="categoria"
-                value={filters.categoria}
+                value={filters.categoriaId}
                 onChange={handleFilterChange}
                 label="Categoria"
               >
                 <MenuItem value="">Todas</MenuItem>
                 {categorias.map((cat) => (
-                  <MenuItem key={cat} value={cat}>
-                    {cat}
+                  <MenuItem key={cat.id} value={cat.id}>
+                    {cat.name}
                   </MenuItem>
                 ))}
               </Select>
@@ -504,12 +500,11 @@ export default function ContasPagar() {
               <TableCell>Categoria</TableCell>
               <TableCell>{isPagar ? 'Fornecedor' : 'Cliente'}</TableCell>
               <TableCell>Valor (R$)</TableCell>
-              <TableCell>Data Lançamento</TableCell>
+              <TableCell>Parcela</TableCell>
+              <TableCell>Data Competencia</TableCell>
               <TableCell>Data Vencimento</TableCell>
               <TableCell>Data Pagamento</TableCell>
-              <TableCell>Pago?</TableCell>
               <TableCell>Origem</TableCell>
-              <TableCell>Observação</TableCell>
               <TableCell align="right">Ações</TableCell>
             </TableRow>
           </TableHead>
@@ -518,23 +513,19 @@ export default function ContasPagar() {
               <TableRow key={item.id}>
                 <TableCell>
                   <Chip 
-                    label={getCategoriaName(item.categoriaId)} 
-                    color={getCategoriaColor(item.categoriaId)} 
+                    label={getCategoriaName(item.categoriaId)}
                     size="small" 
                   />
                 </TableCell>
-                <TableCell>{getFornecedorName(item.fornecedorId)}</TableCell>
+                <TableCell>{getFornecedorName(item.pessoaId)}</TableCell>
                 <TableCell>
                   {parseFloat(item.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </TableCell>
+                <TableCell>{item.numeroParcela}</TableCell>
                 <TableCell>{item.dataCompetencia}</TableCell>
                 <TableCell>{item.dataVencimento}</TableCell>
                 <TableCell>{item.dataRealizacao || '-'}</TableCell>
-                <TableCell>
-                  <Checkbox checked={item.pago} disabled />
-                </TableCell>
                 <TableCell>{item.origem}</TableCell>
-                <TableCell>{item.observacao}</TableCell>
                 <TableCell align="right">
                   {!item.dataRealizacao && (
                     <IconButton 
@@ -573,7 +564,7 @@ export default function ContasPagar() {
               >
                 {categorias.map((cat) => (
                   <MenuItem key={cat.id} value={cat.id}>
-                    {cat.nome}
+                    {cat.name}
                   </MenuItem>
                 ))}
               </Select>
@@ -582,14 +573,14 @@ export default function ContasPagar() {
             <FormControl fullWidth>
               <InputLabel>{isPagar ? 'Fornecedor' : 'Cliente'}</InputLabel>
               <Select
-                name="fornecedorId"
-                value={formData.fornecedorId}
+                name="pessoaId"
+                value={formData.pessoaId}
                 onChange={handleChange}
                 label={isPagar ? 'Fornecedor' : 'Cliente'}
               >
-                {allFornecedores.map((fornecedor) => (
-                  <MenuItem key={fornecedor.uniqueId} value={fornecedor.uniqueId}>
-                    {fornecedor.nome}
+                {allFornecedores.map((pessoa) => (
+                  <MenuItem key={pessoa.uniqueId} value={pessoa.uniqueId}>
+                    {pessoa.name}
                   </MenuItem>
                 ))}
               </Select>
@@ -606,9 +597,9 @@ export default function ContasPagar() {
             <Box sx={{ display: 'flex', gap: 2 }}>
               <TextField 
                 label="Quantidade de Parcelas" 
-                name="numeroParcelas" 
+                name="totalParcelas" 
                 type="number"
-                value={formData.numeroParcelas} 
+                value={formData.totalParcelas} 
                 onChange={handleChange} 
                 fullWidth
                 inputProps={{ min: 1 }}

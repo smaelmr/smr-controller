@@ -30,7 +30,6 @@ export default function Clients() {
   const loadClients = async () => {
     try {
       const data = await clientService.getAll();
-      console.log('Clientes carregados:', data);
       
       // Garante que data seja sempre um array
       let arrayData = [];
