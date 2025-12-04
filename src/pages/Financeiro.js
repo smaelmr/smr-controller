@@ -5,14 +5,14 @@ import {
   TableCell, TableContainer, TableHead, TableRow, TextField, Typography, Select, MenuItem, FormControl, InputLabel, Checkbox, Chip, Grid
 } from '@mui/material';
 import { Add, Edit, Delete, FilterList, Clear, Payment } from '@mui/icons-material';
-import { payableService, receivableService, supplierService, gasStationService, clientService, categoryService } from '../services/services';
+import { financeService, supplierService, gasStationService, clientService, categoryService } from '../services/services';
 import CurrencyInput from '../components/common/CurrencyInput';
 
 export default function ContasPagar() {
   const { tipo } = useParams(); // 'pagar' ou 'receber'
   const isPagar = tipo === 'pagar';
-  const [payables, setPayables] = useState([]);
-  const [filteredPayables, setFilteredPayables] = useState([]);
+  const [finance, setFinance] = useState([]);
+  const [filteredFinance, setFilteredFinance] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
   const [gasStations, setGasStations] = useState([]);
   const [clients, setClients] = useState([]);
@@ -53,42 +53,41 @@ export default function ContasPagar() {
 
   useEffect(() => {
     applyFilters();
-  }, [payables, filters]);
+  }, [finance, filters]);
 
   const loadData = async () => {
     try {
-      const service = isPagar ? payableService : receivableService;
       const categoriasData = await categoryService.getAll();
       const allCategorias = Array.isArray(categoriasData) ? categoriasData : categoriasData.data || [];
       
       // Filtrar categorias por tipo: D para pagar, R para receber
       const categoriasFiltradas = allCategorias.filter(cat => 
-        cat.tipo === (isPagar ? 'D' : 'R')
+        cat.type === (isPagar ? 'D' : 'R')
       );
       
       if (isPagar) {
         // Contas a Pagar: carregar Fornecedores e Postos
-        const [payablesData, suppliersData, gasStationsData] = await Promise.all([
-          service.getAll(),
+        const [financeData, suppliersData, gasStationsData] = await Promise.all([
+          finance.getReceives(),
           supplierService.getAll(),
           gasStationService.getAll(),
         ]);
-        setPayables(Array.isArray(payablesData) ? payablesData : payablesData.data || []);
+        setFinance(Array.isArray(financeData) ? financeData : financeData.data || []);
         setSuppliers(Array.isArray(suppliersData) ? suppliersData : suppliersData.data || []);
         setGasStations(Array.isArray(gasStationsData) ? gasStationsData : gasStationsData.data || []);
         setClients([]);
       } else {
         // Contas a Receber: carregar Clientes
         const [receivablesData, clientsData] = await Promise.all([
-          service.getAll(),
+          service.getPaiables(),
           clientService.getAll(),
         ]);
-        setPayables(Array.isArray(receivablesData) ? receivablesData : receivablesData.data || []);
+        setFinance(Array.isArray(receivablesData) ? receivablesData : receivablesData.data || []);
         setClients(Array.isArray(clientsData) ? clientsData : clientsData.data || []);
         setSuppliers([]);
         setGasStations([]);
       }
-      
+      console.log('Categorias carregadas:', categoriasFiltradas);
       setCategorias(categoriasFiltradas);
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
@@ -96,7 +95,7 @@ export default function ContasPagar() {
   };
 
   const applyFilters = () => {
-    let filtered = [...payables];
+    let filtered = [...finance];
 
     if (filters.dataInicial) {
       filtered = filtered.filter(item => 
@@ -122,7 +121,7 @@ export default function ContasPagar() {
       );
     }
 
-    setFilteredPayables(filtered);
+    setFilteredFinance(filtered);
   };
 
   const handleFilterChange = (e) => {
@@ -333,7 +332,7 @@ export default function ContasPagar() {
   const getCategoriaName = (categoriaId) => {
     if (!categoriaId) return '-';
     const categoria = categorias.find(c => c.id === categoriaId);
-    return categoria ? categoria.nome : '-';
+    return categoria ? categoria.name : '-';
   };
 
   const getCategoriaColor = (categoriaId) => {
@@ -451,7 +450,7 @@ export default function ContasPagar() {
         </Grid>
         <Box mt={2}>
           <Typography variant="body2" color="textSecondary">
-            Exibindo {filteredPayables.length} de {payables.length} registros
+            Exibindo {filteredFinance.length} de {finance.length} registros
           </Typography>
         </Box>
       </Paper>
@@ -473,7 +472,7 @@ export default function ContasPagar() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredPayables.map((item) => (
+            {filteredFinance.map((item) => (
               <TableRow key={item.id}>
                 <TableCell>
                   <Chip 

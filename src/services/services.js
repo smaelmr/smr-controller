@@ -42,20 +42,12 @@ export const driverService = {
   delete: id => api.delete(`/person/driver/${id}`).then(res => res.data),
 };
 
-export const payableService = {
-  getAll: () => api.get('/payable').then(res => res.data),
-  getById: id => api.get(`/payable/${id}`).then(res => res.data),
-  create: data => api.post('/payable', data).then(res => res.data),
-  update: (id, data) => api.put(`/payable/${id}`, data).then(res => res.data),
-  delete: id => api.delete(`/payable/${id}`).then(res => res.data),
-};
-
-export const receivableService = {
-  getAll: () => api.get('/receivable').then(res => res.data),
-  getById: id => api.get(`/receivable/${id}`).then(res => res.data),
-  create: data => api.post('/receivable', data).then(res => res.data),
-  update: (id, data) => api.put(`/receivable/${id}`, data).then(res => res.data),
-  delete: id => api.delete(`/receivable/${id}`).then(res => res.data),
+export const financeService = {
+  getAll: () => api.get('/finance').then(res => res.data),
+  getById: id => api.get(`/finance/${id}`).then(res => res.data),
+  create: data => api.post('/finance', data).then(res => res.data),
+  update: (id, data) => api.put(`/finance/${id}`, data).then(res => res.data),
+  delete: id => api.delete(`/finance/${id}`).then(res => res.data),
 };
 
 export const vehicleService = {
