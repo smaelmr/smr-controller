@@ -34,7 +34,7 @@ export default function ContasPagar() {
     origem: 'Manual',
     origemId: null,
     observacao: '',
-    numeroParcelas: 1,
+    totalParcelas: 1,
     valorParcela: '',
   });
 
@@ -80,7 +80,7 @@ export default function ContasPagar() {
         console.log('Dados de fornecedores:', suppliersData);
 
         console.log('Dados de postos:', gasStationsData);
-
+        console.log('Dados de contas a pagar:', financeData);
 
         setFinance(financeData || []);
         setSuppliers(Array.isArray(suppliersData) ? suppliersData : suppliersData.data || []);
@@ -161,7 +161,7 @@ export default function ContasPagar() {
         dataCompetencia: '',
         dataVencimento: '',
         dataRealizacao: '',
-        numeroParcelas: 1,
+        totalParcelas: 1,
         numeroDocumento: '',
         origem: 'Manual',
         origemId: null,
@@ -189,9 +189,9 @@ export default function ContasPagar() {
     }
     
     // Calcular valor da parcela automaticamente
-    if (name === 'valor' || name === 'numeroParcelas') {
+    if (name === 'valor' || name === 'totalParcelas') {
       const valor = name === 'valor' ? parseFloat(newValue) || 0 : parseFloat(formData.valor) || 0;
-      const parcelas = name === 'numeroParcelas' ? parseInt(newValue) || 1 : parseInt(formData.numeroParcelas) || 1;
+      const parcelas = name === 'totalParcelas' ? parseInt(newValue) || 1 : parseInt(formData.totalParcelas) || 1;
       
       if (valor > 0 && parcelas > 0) {
         updatedFormData.valorParcela = (valor / parcelas).toFixed(2);
@@ -208,6 +208,7 @@ export default function ContasPagar() {
       // Preparar dados para envio
       const dataToSend = {
         ...formData,
+        totalParcelas: parseInt(formData.totalParcelas || 1, 10),
         valor: parseFloat(formData.valor || 0),
         valorParcela: parseFloat(formData.valorParcela || 0),
         origemId: formData.origem === 'Manual' ? null : formData.origemId,
@@ -315,13 +316,13 @@ export default function ContasPagar() {
       const numericId = parseInt(id);
       
       if (type === 'supplier') {
-        const supplier = suppliers.find(s => s.id === numericId);
+        const supplier = suppliers.find(s => s.pessoaId === numericId);
         return supplier ? supplier.name : '-';
       } else if (type === 'station') {
-        const station = gasStations.find(g => g.id === numericId);
+        const station = gasStations.find(g => g.pessoaId === numericId);
         return station ? station.name : '-';
       } else if (type === 'client') {
-        const client = clients.find(c => c.id === numericId);
+        const client = clients.find(c => c.pessoaId === numericId);
         return client ? client.name : '-';
       }
     }
@@ -330,14 +331,14 @@ export default function ContasPagar() {
     
     // Tentar encontrar em fornecedores/postos (contas a pagar)
     const supplier = suppliers.find(s => s.id === numericId);
-    if (supplier) return supplier.nome;
+    if (supplier) return supplier.name;
     
     const station = gasStations.find(g => g.id === numericId);
-    if (station) return station.nome;
+    if (station) return station.name;
     
     // Tentar encontrar em clientes (contas a receber)
     const client = clients.find(c => c.id === numericId);
-    if (client) return client.nome;
+    if (client) return client.name;
     
     return '-';
   };
@@ -407,7 +408,7 @@ export default function ContasPagar() {
                 <MenuItem value="">Todos</MenuItem>
                 {allFornecedores.map((fornecedor) => (
                   <MenuItem key={fornecedor.uniqueId} value={fornecedor.uniqueId}>
-                    {fornecedor.nome}
+                    {fornecedor.name}
                   </MenuItem>
                 ))}
               </Select>
@@ -457,12 +458,11 @@ export default function ContasPagar() {
               <TableCell>Categoria</TableCell>
               <TableCell>{isPagar ? 'Fornecedor' : 'Cliente'}</TableCell>
               <TableCell>Valor (R$)</TableCell>
-              <TableCell>Data Lançamento</TableCell>
+              <TableCell>Parcela</TableCell>
+              <TableCell>Data Competencia</TableCell>
               <TableCell>Data Vencimento</TableCell>
               <TableCell>Data Pagamento</TableCell>
-              <TableCell>Pago?</TableCell>
               <TableCell>Origem</TableCell>
-              <TableCell>Observação</TableCell>
               <TableCell align="right">Ações</TableCell>
             </TableRow>
           </TableHead>
@@ -475,18 +475,15 @@ export default function ContasPagar() {
                     size="small" 
                   />
                 </TableCell>
-                <TableCell>{getFornecedorName(item.fornecedorId)}</TableCell>
+                <TableCell>{getFornecedorName(item.pessoaId)}</TableCell>
                 <TableCell>
                   {parseFloat(item.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </TableCell>
+                <TableCell>{item.numeroParcela}</TableCell>
                 <TableCell>{item.dataCompetencia}</TableCell>
                 <TableCell>{item.dataVencimento}</TableCell>
                 <TableCell>{item.dataRealizacao || '-'}</TableCell>
-                <TableCell>
-                  <Checkbox checked={item.pago} disabled />
-                </TableCell>
                 <TableCell>{item.origem}</TableCell>
-                <TableCell>{item.observacao}</TableCell>
                 <TableCell align="right">
                   {!item.dataRealizacao && (
                     <IconButton 
@@ -558,9 +555,9 @@ export default function ContasPagar() {
             <Box sx={{ display: 'flex', gap: 2 }}>
               <TextField 
                 label="Quantidade de Parcelas" 
-                name="numeroParcelas" 
+                name="totalParcelas" 
                 type="number"
-                value={formData.numeroParcelas} 
+                value={formData.totalParcelas} 
                 onChange={handleChange} 
                 fullWidth
                 inputProps={{ min: 1 }}
