@@ -7,6 +7,7 @@ import {
 import { Add, Edit, Delete, FilterList, Clear, Payment } from '@mui/icons-material';
 import { financeService, supplierService, gasStationService, clientService, categoryService } from '../services/services';
 import CurrencyInput from '../components/common/CurrencyInput';
+import { formatToISO } from '../services/helpers/dateUtils';
 
 export default function ContasPagar() {
   const { tipo } = useParams(); // 'pagar' ou 'receber'
@@ -23,8 +24,8 @@ export default function ContasPagar() {
   const [partialAmount, setPartialAmount] = useState('');
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({
-    categoriaId: '',
-    pessoaId: '',
+    categoriaId: 0,
+    pessoaId: 0,
     valor: '',
     dataCompetencia: '',
     dataVencimento: '',
@@ -76,7 +77,10 @@ export default function ContasPagar() {
           gasStationService.getAll(),
         ]);
 
-        console.log('Dados de finance:', financeData);
+        console.log('Dados de fornecedores:', suppliersData);
+
+        console.log('Dados de postos:', gasStationsData);
+
 
         setFinance(financeData || []);
         setSuppliers(Array.isArray(suppliersData) ? suppliersData : suppliersData.data || []);
@@ -88,6 +92,9 @@ export default function ContasPagar() {
           financeService.getReceipts(currentMonth, currentYear),
           clientService.getAll(),
         ]);
+
+        console.log('Dados de clientes:', clientsData);
+
         setFinance(financeData || []);
         setClients(Array.isArray(clientsData) ? clientsData : clientsData.data || []);
         setSuppliers([]);
@@ -201,7 +208,12 @@ export default function ContasPagar() {
       // Preparar dados para envio
       const dataToSend = {
         ...formData,
+        valor: parseFloat(formData.valor || 0),
+        valorParcela: parseFloat(formData.valorParcela || 0),
         origemId: formData.origem === 'Manual' ? null : formData.origemId,
+        dataCompetencia: formatToISO(formData.dataCompetencia),
+        dataVencimento: formatToISO(formData.dataVencimento),
+        dataRealizacao: formData.dataRealizacao ? formatToISO(formData.dataRealizacao) : null,
       };
 
       console.log('Dados a serem enviados:', dataToSend);
@@ -337,10 +349,10 @@ export default function ContasPagar() {
   };
 
   const allFornecedores = isPagar ? [
-    ...suppliers.map(s => ({ ...s, uniqueId: `${s.pessoaId}` })),
-    ...gasStations.map(g => ({ ...g, uniqueId: `${g.pessoaId}` }))
+    ...suppliers.map(s => ({ ...s, uniqueId: s.pessoaId })),
+    ...gasStations.map(g => ({ ...g, uniqueId: g.pessoaId }))
   ] : [
-    ...clients.map(c => ({ ...c, uniqueId: `${c.pessoaId}` }))
+    ...clients.map(c => ({ ...c, uniqueId: c.pessoaId }))
   ];
 
   return (
@@ -529,7 +541,7 @@ export default function ContasPagar() {
               >
                 {allFornecedores.map((pessoa) => (
                   <MenuItem key={pessoa.uniqueId} value={pessoa.uniqueId}>
-                    {fornecedor.name}
+                    {pessoa.name}
                   </MenuItem>
                 ))}
               </Select>
