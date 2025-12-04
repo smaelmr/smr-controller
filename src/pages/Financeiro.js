@@ -93,7 +93,6 @@ export default function ContasPagar() {
         setSuppliers([]);
         setGasStations([]);
       }
-      console.log('Categorias carregadas:', categoriasFiltradas);
       setCategorias(categoriasFiltradas);
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
@@ -204,6 +203,8 @@ export default function ContasPagar() {
         ...formData,
         origemId: formData.origem === 'Manual' ? null : formData.origemId,
       };
+
+      console.log('Dados a serem enviados:', dataToSend);
       
       if (editingId) {
         await financeService.update(editingId, dataToSend);
@@ -339,7 +340,7 @@ export default function ContasPagar() {
     ...suppliers.map(s => ({ ...s, uniqueId: `${s.pessoaId}` })),
     ...gasStations.map(g => ({ ...g, uniqueId: `${g.pessoaId}` }))
   ] : [
-    ...clients.map(c => ({ ...c, uniqueId: `client-${c.pessoaId}` }))
+    ...clients.map(c => ({ ...c, uniqueId: `${c.pessoaId}` }))
   ];
 
   return (
@@ -526,8 +527,8 @@ export default function ContasPagar() {
                 onChange={handleChange}
                 label={isPagar ? 'Fornecedor' : 'Cliente'}
               >
-                {allFornecedores.map((fornecedor) => (
-                  <MenuItem key={fornecedor.uniqueId} value={fornecedor.uniqueId}>
+                {allFornecedores.map((pessoa) => (
+                  <MenuItem key={pessoa.uniqueId} value={pessoa.uniqueId}>
                     {fornecedor.name}
                   </MenuItem>
                 ))}

@@ -39,7 +39,6 @@ function Vehicles() {
   const loadVehicles = async () => {
     try {
       const data = await vehicleService.getAll();
-      console.log('Veículos carregados:', data); // Para debug
       
       // Trata diferentes formatos de resposta da API
       if (Array.isArray(data)) {
