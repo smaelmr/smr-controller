@@ -43,7 +43,8 @@ export const driverService = {
 };
 
 export const financeService = {
-  getAll: () => api.get('/finance').then(res => res.data),
+  getReceipts: () => api.get('/finance/receipts').then(res => res.data),
+  getPayments: () => api.get('/finance/payments').then(res => res.data),
   getById: id => api.get(`/finance/${id}`).then(res => res.data),
   create: data => api.post('/finance', data).then(res => res.data),
   update: (id, data) => api.put(`/finance/${id}`, data).then(res => res.data),

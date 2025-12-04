@@ -68,7 +68,7 @@ export default function ContasPagar() {
       if (isPagar) {
         // Contas a Pagar: carregar Fornecedores e Postos
         const [financeData, suppliersData, gasStationsData] = await Promise.all([
-          finance.getReceives(),
+          finance.getPayments(),
           supplierService.getAll(),
           gasStationService.getAll(),
         ]);
@@ -79,7 +79,7 @@ export default function ContasPagar() {
       } else {
         // Contas a Receber: carregar Clientes
         const [receivablesData, clientsData] = await Promise.all([
-          service.getPaiables(),
+          service.getReceipts(),
           clientService.getAll(),
         ]);
         setFinance(Array.isArray(receivablesData) ? receivablesData : receivablesData.data || []);
