@@ -5,7 +5,7 @@ import {
   TableCell, TableContainer, TableHead, TableRow, TextField, Typography, Select, MenuItem, FormControl, InputLabel, Checkbox, Chip, Grid
 } from '@mui/material';
 import { Add, Edit, Delete, FilterList, Clear, Payment } from '@mui/icons-material';
-import { financeService, supplierService, gasStationService, clientService, categoryService } from '../services/services';
+import { financeService, supplierService, gasStationService, clientService, categoryService, paymentMethodService } from '../services/services';
 import CurrencyInput from '../components/common/CurrencyInput';
 
 export default function ContasPagar() {
@@ -17,10 +17,13 @@ export default function ContasPagar() {
   const [gasStations, setGasStations] = useState([]);
   const [clients, setClients] = useState([]);
   const [categorias, setCategorias] = useState([]);
+  const [paymentMethods, setPaymentMethods] = useState([]);
   const [open, setOpen] = useState(false);
-  const [partialPaymentOpen, setPartialPaymentOpen] = useState(false);
+  const [paymentOpen, setPaymentOpen] = useState(false);
   const [selectedFinance, setSelectedFinance] = useState(null);
-  const [partialAmount, setPartialAmount] = useState('');
+  const [paymentAmount, setPaymentAmount] = useState('');
+  const [paymentDate, setPaymentDate] = useState('');
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('');
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({
     categoriaId: '',
@@ -62,6 +65,10 @@ export default function ContasPagar() {
       
       const categoriasData = await categoryService.getAll();
       const allCategorias = Array.isArray(categoriasData) ? categoriasData : categoriasData.data || [];
+      
+      const paymentMethodsData = await paymentMethodService.getAll();
+      const allPaymentMethods = Array.isArray(paymentMethodsData) ? paymentMethodsData : paymentMethodsData.data || [];
+      setPaymentMethods(allPaymentMethods);
       
       // Filtrar categorias por tipo: D para pagar, R para receber
       const categoriasFiltradas = allCategorias.filter(cat => 
@@ -230,67 +237,102 @@ export default function ContasPagar() {
     }
   };
 
-  // Função para abrir diálogo de pagamento parcial
-  const handlePartialPaymentOpen = (payable) => {
-    setSelectedFinance(payable);
-    setPartialAmount('');
-    setPartialPaymentOpen(true);
+  // Função para abrir diálogo de pagamento
+  const handlePaymentOpen = (finance) => {
+    setSelectedFinance(finance);
+    setPaymentAmount(finance.valor); // Inicializa com o valor total
+    setPaymentDate(new Date().toISOString().split('T')[0]); // Data atual
+    setSelectedPaymentMethod('');
+    setPaymentOpen(true);
   };
 
-  const handlePartialPaymentClose = () => {
-    setPartialPaymentOpen(false);
+  const handlePaymentClose = () => {
+    setPaymentOpen(false);
     setSelectedFinance(null);
-    setPartialAmount('');
+    setPaymentAmount('');
+    setPaymentDate('');
+    setSelectedPaymentMethod('');
   };
 
-  // Processar pagamento parcial
-  const handlePartialPaymentSubmit = async () => {
-    if (!selectedFinance || !partialAmount) {
+  // Processar pagamento
+  const handlePaymentSubmit = async () => {
+    if (!selectedFinance || !paymentAmount) {
       alert('Informe o valor do pagamento');
       return;
     }
 
-    const valorPago = parseFloat(partialAmount);
-    const valorTotal = parseFloat(selectedFinance.valor);
-
-    if (valorPago <= 0 || valorPago >= valorTotal) {
-      alert('O valor do pagamento parcial deve ser maior que zero e menor que o valor total');
+    if (!selectedPaymentMethod) {
+      alert('Selecione a forma de pagamento');
       return;
     }
 
-    const valorRestante = valorTotal - valorPago;
-    const hoje = new Date().toISOString().split('T')[0];
+    if (!paymentDate) {
+      alert('Informe a data de realização do pagamento');
+      return;
+    }
+
+    const valorPago = parseFloat(paymentAmount);
+    const valorTotal = parseFloat(selectedFinance.valor);
+
+    if (valorPago <= 0) {
+      alert('O valor do pagamento deve ser maior que zero');
+      return;
+    }
 
     try {
-      // Atualizar conta original como paga parcialmente
-      await financeService.update(selectedFinance.id, {
-        ...selectedFinance,
-        valor: valorPago.toString(),
-        dataPagamento: hoje,
-        pago: true,
-        observacao: `${selectedFinance.observacao || ''} [Pagamento Parcial - Valor Original: R$ ${valorTotal.toFixed(2)}]`.trim(),
-      });
+      if (valorPago === valorTotal) {
+        // Pagamento total
+        await financeService.update(selectedFinance.id, {
+          ...selectedFinance,
+          dataRealizacao: paymentDate,
+          formaPagamentoId: selectedPaymentMethod,
+        });
+        
+        loadData();
+        handlePaymentClose();
+      } else if (valorPago < valorTotal) {
+        // Pagamento parcial - perguntar se quer lançar diferença
+        const lancarDiferenca = window.confirm(
+          `O valor pago (R$ ${valorPago.toFixed(2)}) é menor que o valor total (R$ ${valorTotal.toFixed(2)}).\n\n` +
+          `Deseja lançar a diferença de R$ ${(valorTotal - valorPago).toFixed(2)} como um novo lançamento?`
+        );
 
-      // Criar nova conta com o saldo restante
-      await financeService.create({
-        categoriaId: selectedFinance.categoriaId,
-        pessoaId: selectedFinance.fornecedorId,
-        valor: valorRestante.toString(),
-        dataCompetencia: hoje,
-        dataVencimento: selectedFinance.dataVencimento,
-        dataRealizacao: '',
-        numeroDocumento: selectedFinance.numeroDocumento,
-        origem: 'Manual',
-        origemId: selectedFinance.origemId,
-        observacao: `Saldo restante da conta original (Ref: #${selectedFinance.id})`,
-        numeroParcela: selectedFinance.numeroParcela,
-      });
+        // Atualizar conta original com valor pago
+        await financeService.update(selectedFinance.id, {
+          ...selectedFinance,
+          valor: valorPago.toString(),
+          dataRealizacao: paymentDate,
+          formaPagamentoId: selectedPaymentMethod,
+          observacao: `${selectedFinance.observacao || ''} [Pagamento Parcial - Valor Original: R$ ${valorTotal.toFixed(2)}]`.trim(),
+        });
 
-      loadData();
-      handlePartialPaymentClose();
+        if (lancarDiferenca) {
+          // Criar nova conta com o saldo restante
+          const valorRestante = valorTotal - valorPago;
+          await financeService.create({
+            categoriaId: selectedFinance.categoriaId,
+            pessoaId: selectedFinance.pessoaId,
+            valor: valorRestante.toString(),
+            dataCompetencia: paymentDate,
+            dataVencimento: selectedFinance.dataVencimento,
+            dataRealizacao: null,
+            numeroDocumento: selectedFinance.numeroDocumento,
+            origem: 'Manual',
+            origemId: selectedFinance.id,
+            observacao: `Saldo restante da conta original (Ref: #${selectedFinance.id})`,
+            numeroParcela: selectedFinance.numeroParcela,
+          });
+        }
+
+        loadData();
+        handlePaymentClose();
+      } else {
+        // Valor pago maior que o total
+        alert('O valor do pagamento não pode ser maior que o valor total da conta');
+      }
     } catch (error) {
-      console.error('Erro ao processar pagamento parcial:', error);
-      alert('Erro ao processar pagamento parcial.');
+      console.error('Erro ao processar pagamento:', error);
+      alert('Erro ao processar pagamento.');
     }
   };
 
@@ -497,8 +539,8 @@ export default function ContasPagar() {
                   {!item.dataRealizacao && (
                     <IconButton 
                       color="success" 
-                      onClick={() => handlePartialPaymentOpen(item)}
-                      title="Pagamento Parcial"
+                      onClick={() => handlePaymentOpen(item)}
+                      title="Realizar Pagamento"
                     >
                       <Payment />
                     </IconButton>
@@ -638,9 +680,9 @@ export default function ContasPagar() {
         </DialogActions>
       </Dialog>
 
-      {/* Dialog de Pagamento Parcial */}
-      <Dialog open={partialPaymentOpen} onClose={handlePartialPaymentClose} maxWidth="sm" fullWidth>
-        <DialogTitle>Pagamento Parcial</DialogTitle>
+      {/* Dialog de Pagamento */}
+      <Dialog open={paymentOpen} onClose={handlePaymentClose} maxWidth="sm" fullWidth>
+        <DialogTitle>{isPagar ? 'Realizar Pagamento' : 'Realizar Recebimento'}</DialogTitle>
         <DialogContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 2 }}>
             {selectedFinance && (
@@ -649,19 +691,47 @@ export default function ContasPagar() {
                   <strong>Valor Total:</strong> R$ {parseFloat(selectedFinance.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </Typography>
                 <Typography variant="body2" color="textSecondary">
-                  Informe o valor que está sendo pago. O saldo restante será lançado como uma nova conta em aberto.
+                  Informe o valor, a data e a forma de pagamento. Se o valor for menor que o total, você poderá escolher lançar a diferença.
                 </Typography>
                 <CurrencyInput
                   label="Valor do Pagamento"
-                  name="partialAmount"
-                  value={partialAmount}
-                  onChange={(e) => setPartialAmount(e.target.value)}
+                  name="paymentAmount"
+                  value={paymentAmount}
+                  onChange={(e) => setPaymentAmount(e.target.value)}
                   fullWidth
                   autoFocus
                 />
-                {partialAmount && parseFloat(partialAmount) > 0 && parseFloat(partialAmount) < parseFloat(selectedFinance.valor) && (
-                  <Typography variant="body2" color="primary">
-                    Saldo restante: R$ {(parseFloat(selectedFinance.valor) - parseFloat(partialAmount)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                <TextField
+                  label="Data de Realização"
+                  name="paymentDate"
+                  type="date"
+                  value={paymentDate}
+                  onChange={(e) => setPaymentDate(e.target.value)}
+                  InputLabelProps={{ shrink: true }}
+                  fullWidth
+                />
+                <FormControl fullWidth>
+                  <InputLabel>Forma de Pagamento</InputLabel>
+                  <Select
+                    value={selectedPaymentMethod}
+                    onChange={(e) => setSelectedPaymentMethod(e.target.value)}
+                    label="Forma de Pagamento"
+                  >
+                    {paymentMethods.map((method) => (
+                      <MenuItem key={method.id} value={method.id}>
+                        {method.nome}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                {paymentAmount && parseFloat(paymentAmount) > 0 && parseFloat(paymentAmount) < parseFloat(selectedFinance.valor) && (
+                  <Typography variant="body2" color="warning.main">
+                    <strong>Atenção:</strong> O valor informado é menor que o total. Você será perguntado se deseja lançar a diferença de R$ {(parseFloat(selectedFinance.valor) - parseFloat(paymentAmount)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} como um novo lançamento.
+                  </Typography>
+                )}
+                {paymentAmount && parseFloat(paymentAmount) > parseFloat(selectedFinance.valor) && (
+                  <Typography variant="body2" color="error">
+                    <strong>Erro:</strong> O valor do pagamento não pode ser maior que o valor total.
                   </Typography>
                 )}
               </>
@@ -669,9 +739,9 @@ export default function ContasPagar() {
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handlePartialPaymentClose}>Cancelar</Button>
-          <Button onClick={handlePartialPaymentSubmit} variant="contained" color="success">
-            Confirmar Pagamento
+          <Button onClick={handlePaymentClose}>Cancelar</Button>
+          <Button onClick={handlePaymentSubmit} variant="contained" color="success">
+            Confirmar {isPagar ? 'Pagamento' : 'Recebimento'}
           </Button>
         </DialogActions>
       </Dialog>

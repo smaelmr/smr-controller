@@ -91,3 +91,11 @@ export const categoryService = {
   update: (id, data) => api.put(`/category/${id}`, data).then(res => res.data),
   delete: id => api.delete(`/category/${id}`).then(res => res.data),
 };
+
+export const paymentMethodService = {
+  getAll: () => api.get('/payment-method').then(res => Array.isArray(res.data) ? res.data : res.data.data || []),
+  getById: id => api.get(`/payment-method/${id}`).then(res => res.data),
+  create: data => api.post('/payment-method', data).then(res => res.data),
+  update: (id, data) => api.put(`/payment-method/${id}`, data).then(res => res.data),
+  delete: id => api.delete(`/payment-method/${id}`).then(res => res.data),
+};
