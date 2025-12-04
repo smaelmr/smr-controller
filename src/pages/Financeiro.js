@@ -78,7 +78,7 @@ export default function ContasPagar() {
 
         console.log('Dados de finance:', financeData);
 
-        setFinance(Array.isArray(financeData) ? financeData : financeData.data || []);
+        setFinance(financeData || []);
         setSuppliers(Array.isArray(suppliersData) ? suppliersData : suppliersData.data || []);
         setGasStations(Array.isArray(gasStationsData) ? gasStationsData : gasStationsData.data || []);
         setClients([]);
@@ -88,7 +88,7 @@ export default function ContasPagar() {
           financeService.getReceipts(currentMonth, currentYear),
           clientService.getAll(),
         ]);
-        setFinance(Array.isArray(financeData) ? financeData : financeData.data || []);
+        setFinance(financeData || []);
         setClients(Array.isArray(clientsData) ? clientsData : clientsData.data || []);
         setSuppliers([]);
         setGasStations([]);

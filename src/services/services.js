@@ -43,8 +43,24 @@ export const driverService = {
 };
 
 export const financeService = {
-  getReceipts: (month, year) => api.get(`/finance/receipts?month=${month}&year=${year}`).then(res => Array.isArray(res.data) ? res.data : res.data.data || []),
-  getPayments: (month, year) => api.get(`/finance/payments?month=${month}&year=${year}`).then(res => Array.isArray(res.data) ? res.data : res.data.data || []),
+  getReceipts: (month, year) => api.get(`/finance/receipts?month=${month}&year=${year}`)
+    .then(res => {
+      if (!res || !res.data) return [];
+      return Array.isArray(res.data) ? res.data : res.data.data || [];
+    })
+    .catch(err => {
+      console.error('Erro ao buscar recebimentos:', err);
+      return [];
+    }),
+  getPayments: (month, year) => api.get(`/finance/payments?month=${month}&year=${year}`)
+    .then(res => {
+      if (!res || !res.data) return [];
+      return Array.isArray(res.data) ? res.data : res.data.data || [];
+    })
+    .catch(err => {
+      console.error('Erro ao buscar pagamentos:', err);
+      return [];
+    }),
   getById: id => api.get(`/finance/${id}`).then(res => res.data),
   create: data => api.post('/finance', data).then(res => res.data),
   update: (id, data) => api.put(`/finance/${id}`, data).then(res => res.data),
