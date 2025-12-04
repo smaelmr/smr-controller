@@ -19,22 +19,20 @@ export default function ContasPagar() {
   const [categorias, setCategorias] = useState([]);
   const [open, setOpen] = useState(false);
   const [partialPaymentOpen, setPartialPaymentOpen] = useState(false);
-  const [selectedPayable, setSelectedPayable] = useState(null);
+  const [selectedFinance, setSelectedFinance] = useState(null);
   const [partialAmount, setPartialAmount] = useState('');
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({
     categoriaId: '',
-    fornecedorId: '',
+    pessoaId: '',
     valor: '',
-    dataLancamento: '',
+    dataCompetencia: '',
     dataVencimento: '',
-    dataPagamento: '',
+    dataRealizacao: '',
     numeroDocumento: '',
     origem: 'Manual',
     origemId: null,
-    referencia: '',
     observacao: '',
-    pago: false,
     numeroParcelas: 1,
     valorParcela: '',
   });
@@ -77,17 +75,20 @@ export default function ContasPagar() {
           supplierService.getAll(),
           gasStationService.getAll(),
         ]);
+
+        console.log('Dados de finance:', financeData);
+
         setFinance(Array.isArray(financeData) ? financeData : financeData.data || []);
         setSuppliers(Array.isArray(suppliersData) ? suppliersData : suppliersData.data || []);
         setGasStations(Array.isArray(gasStationsData) ? gasStationsData : gasStationsData.data || []);
         setClients([]);
       } else {
         // Contas a Receber: carregar Clientes
-        const [receivablesData, clientsData] = await Promise.all([
+        const [financeData, clientsData] = await Promise.all([
           financeService.getReceipts(currentMonth, currentYear),
           clientService.getAll(),
         ]);
-        setFinance(Array.isArray(receivablesData) ? receivablesData : receivablesData.data || []);
+        setFinance(Array.isArray(financeData) ? financeData : financeData.data || []);
         setClients(Array.isArray(clientsData) ? clientsData : clientsData.data || []);
         setSuppliers([]);
         setGasStations([]);
@@ -114,9 +115,9 @@ export default function ContasPagar() {
       );
     }
 
-    if (filters.fornecedorId) {
+    if (filters.pessoaId) {
       filtered = filtered.filter(item => 
-        item.fornecedorId === filters.fornecedorId
+        item.pessoaId === filters.pessoaId
       );
     }
 
@@ -149,18 +150,16 @@ export default function ContasPagar() {
     } else {
       setFormData({
         categoriaId: '',
-        fornecedorId: '',
+        pessoaId: '',
         valor: '',
-        dataLancamento: '',
+        dataCompetencia: '',
         dataVencimento: '',
-        dataPagamento: '',
+        dataRealizacao: '',
         numeroParcelas: 1,
         numeroDocumento: '',
         origem: 'Manual',
         origemId: null,
-        referencia: '',
         observacao: '',
-        pago: false,
         valorParcela: '',
       });
       setEditingId(null);
@@ -200,7 +199,6 @@ export default function ContasPagar() {
 
   const handleSubmit = async () => {
     try {
-      const service = isPagar ? payableService : receivableService;
       // Preparar dados para envio
       const dataToSend = {
         ...formData,
@@ -208,9 +206,9 @@ export default function ContasPagar() {
       };
       
       if (editingId) {
-        await service.update(editingId, dataToSend);
+        await financeService.update(editingId, dataToSend);
       } else {
-        await service.create(dataToSend);
+        await financeService.create(dataToSend);
       }
       loadData();
       handleClose();
@@ -223,8 +221,7 @@ export default function ContasPagar() {
   const handleDelete = async (id) => {
     if (window.confirm('Excluir este lançamento?')) {
       try {
-        const service = isPagar ? payableService : receivableService;
-        await service.delete(id);
+        await financeService.delete(id);
         loadData();
       } catch (error) {
         console.error(`Erro ao excluir conta a ${isPagar ? 'pagar' : 'receber'}:`, error);
@@ -235,26 +232,26 @@ export default function ContasPagar() {
 
   // Função para abrir diálogo de pagamento parcial
   const handlePartialPaymentOpen = (payable) => {
-    setSelectedPayable(payable);
+    setSelectedFinance(payable);
     setPartialAmount('');
     setPartialPaymentOpen(true);
   };
 
   const handlePartialPaymentClose = () => {
     setPartialPaymentOpen(false);
-    setSelectedPayable(null);
+    setSelectedFinance(null);
     setPartialAmount('');
   };
 
   // Processar pagamento parcial
   const handlePartialPaymentSubmit = async () => {
-    if (!selectedPayable || !partialAmount) {
+    if (!selectedFinance || !partialAmount) {
       alert('Informe o valor do pagamento');
       return;
     }
 
     const valorPago = parseFloat(partialAmount);
-    const valorTotal = parseFloat(selectedPayable.valor);
+    const valorTotal = parseFloat(selectedFinance.valor);
 
     if (valorPago <= 0 || valorPago >= valorTotal) {
       alert('O valor do pagamento parcial deve ser maior que zero e menor que o valor total');
@@ -265,30 +262,28 @@ export default function ContasPagar() {
     const hoje = new Date().toISOString().split('T')[0];
 
     try {
-      const service = isPagar ? payableService : receivableService;
       // Atualizar conta original como paga parcialmente
-      await service.update(selectedPayable.id, {
-        ...selectedPayable,
+      await financeService.update(selectedFinance.id, {
+        ...selectedFinance,
         valor: valorPago.toString(),
         dataPagamento: hoje,
         pago: true,
-        observacao: `${selectedPayable.observacao || ''} [Pagamento Parcial - Valor Original: R$ ${valorTotal.toFixed(2)}]`.trim(),
+        observacao: `${selectedFinance.observacao || ''} [Pagamento Parcial - Valor Original: R$ ${valorTotal.toFixed(2)}]`.trim(),
       });
 
       // Criar nova conta com o saldo restante
-      await service.create({
-        categoriaId: selectedPayable.categoriaId,
-        fornecedorId: selectedPayable.fornecedorId,
+      await financeService.create({
+        categoriaId: selectedFinance.categoriaId,
+        pessoaId: selectedFinance.fornecedorId,
         valor: valorRestante.toString(),
-        dataLancamento: hoje,
-        dataVencimento: selectedPayable.dataVencimento,
-        dataPagamento: '',
-        numeroDocumento: selectedPayable.numeroDocumento,
-        origem: 'Saldo de Pagamento Parcial',
-        origemId: selectedPayable.id,
-        referencia: selectedPayable.id,
-        observacao: `Saldo restante da conta original (Ref: #${selectedPayable.id})`,
-        pago: false,
+        dataCompetencia: hoje,
+        dataVencimento: selectedFinance.dataVencimento,
+        dataRealizacao: '',
+        numeroDocumento: selectedFinance.numeroDocumento,
+        origem: 'Manual',
+        origemId: selectedFinance.origemId,
+        observacao: `Saldo restante da conta original (Ref: #${selectedFinance.id})`,
+        numeroParcela: selectedFinance.numeroParcela,
       });
 
       loadData();
@@ -490,16 +485,16 @@ export default function ContasPagar() {
                 <TableCell>
                   {parseFloat(item.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </TableCell>
-                <TableCell>{item.dataLancamento}</TableCell>
+                <TableCell>{item.dataCompetencia}</TableCell>
                 <TableCell>{item.dataVencimento}</TableCell>
-                <TableCell>{item.dataPagamento || '-'}</TableCell>
+                <TableCell>{item.dataRealizacao || '-'}</TableCell>
                 <TableCell>
                   <Checkbox checked={item.pago} disabled />
                 </TableCell>
                 <TableCell>{item.origem}</TableCell>
                 <TableCell>{item.observacao}</TableCell>
                 <TableCell align="right">
-                  {!item.pago && (
+                  {!item.dataRealizacao && (
                     <IconButton 
                       color="success" 
                       onClick={() => handlePartialPaymentOpen(item)}
@@ -588,10 +583,10 @@ export default function ContasPagar() {
             </Box>
 
             <TextField
-              label="Data Lançamento"
-              name="dataLancamento"
+              label="Data Competência"
+              name="dataCompetencia"
               type="date"
-              value={formData.dataLancamento}
+              value={formData.dataCompetencia}
               onChange={handleChange}
               InputLabelProps={{ shrink: true }}
               fullWidth
@@ -615,30 +610,10 @@ export default function ContasPagar() {
             />
 
             <TextField
-              label="Origem"
-              name="origem"
-              value={formData.origem}
-              onChange={handleChange}
-              fullWidth
-            />
-
-            {formData.origem !== 'Manual' && (
-              <TextField
-                label="ID da Origem"
-                name="origemId"
-                type="number"
-                value={formData.origemId || ''}
-                onChange={handleChange}
-                fullWidth
-                helperText="Obrigatório quando a origem não é Manual"
-              />
-            )}
-
-            <TextField
               label="Data Pagamento"
-              name="dataPagamento"
+              name="dataRealizacao"
               type="date"
-              value={formData.dataPagamento}
+              value={formData.dataRealizacao}
               onChange={handleChange}
               InputLabelProps={{ shrink: true }}
               fullWidth
@@ -653,17 +628,6 @@ export default function ContasPagar() {
               rows={2}
               fullWidth
             />
-
-            <FormControl>
-              <Box display="flex" alignItems="center">
-                <Checkbox
-                  name="pago"
-                  checked={formData.pago}
-                  onChange={handleChange}
-                />
-                <Typography>Pago</Typography>
-              </Box>
-            </FormControl>
           </Box>
         </DialogContent>
         <DialogActions>
@@ -679,10 +643,10 @@ export default function ContasPagar() {
         <DialogTitle>Pagamento Parcial</DialogTitle>
         <DialogContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 2 }}>
-            {selectedPayable && (
+            {selectedFinance && (
               <>
                 <Typography variant="body1">
-                  <strong>Valor Total:</strong> R$ {parseFloat(selectedPayable.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  <strong>Valor Total:</strong> R$ {parseFloat(selectedFinance.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </Typography>
                 <Typography variant="body2" color="textSecondary">
                   Informe o valor que está sendo pago. O saldo restante será lançado como uma nova conta em aberto.
@@ -695,9 +659,9 @@ export default function ContasPagar() {
                   fullWidth
                   autoFocus
                 />
-                {partialAmount && parseFloat(partialAmount) > 0 && parseFloat(partialAmount) < parseFloat(selectedPayable.valor) && (
+                {partialAmount && parseFloat(partialAmount) > 0 && parseFloat(partialAmount) < parseFloat(selectedFinance.valor) && (
                   <Typography variant="body2" color="primary">
-                    Saldo restante: R$ {(parseFloat(selectedPayable.valor) - parseFloat(partialAmount)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    Saldo restante: R$ {(parseFloat(selectedFinance.valor) - parseFloat(partialAmount)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </Typography>
                 )}
               </>

@@ -43,8 +43,8 @@ export const driverService = {
 };
 
 export const financeService = {
-  getReceipts: (month, year) => api.get(`/finance/receipts?month=${month}&year=${year}`).then(res => res.data),
-  getPayments: (month, year) => api.get(`/finance/payments?month=${month}&year=${year}`).then(res => res.data),
+  getReceipts: (month, year) => api.get(`/finance/receipts?month=${month}&year=${year}`).then(res => Array.isArray(res.data) ? res.data : res.data.data || []),
+  getPayments: (month, year) => api.get(`/finance/payments?month=${month}&year=${year}`).then(res => Array.isArray(res.data) ? res.data : res.data.data || []),
   getById: id => api.get(`/finance/${id}`).then(res => res.data),
   create: data => api.post('/finance', data).then(res => res.data),
   update: (id, data) => api.put(`/finance/${id}`, data).then(res => res.data),
