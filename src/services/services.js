@@ -65,6 +65,7 @@ export const financeService = {
   create: data => api.post('/finance', data).then(res => res.data),
   update: (id, data) => api.put(`/finance/${id}`, data).then(res => res.data),
   delete: id => api.delete(`/finance/${id}`).then(res => res.data),
+  payment: (id, data) => api.put(`/finance/${id}/payment`, data).then(res => res.data),
 };
 
 export const vehicleService = {

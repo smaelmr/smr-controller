@@ -39,6 +39,7 @@ export default function ContasPagar() {
     observacao: '',
     totalParcelas: 1,
     valorParcela: '',
+    lancarDiferenca: false,
   });
 
   // Estados dos filtros
@@ -174,6 +175,7 @@ export default function ContasPagar() {
         origemId: null,
         observacao: '',
         valorParcela: '',
+        lancarDiferenca: false,
       });
       setEditingId(null);
     }
@@ -254,7 +256,7 @@ export default function ContasPagar() {
   // Função para abrir diálogo de pagamento
   const handlePaymentOpen = (finance) => {
     setSelectedFinance(finance);
-    setPaymentAmount(finance.valor); // Inicializa com o valor total
+    setPaymentAmount(finance.valorParcela); // Inicializa com o valor total
     setPaymentDate(new Date().toISOString().split('T')[0]); // Data atual
     setSelectedPaymentMethod('');
     setPaymentOpen(true);
@@ -286,7 +288,7 @@ export default function ContasPagar() {
     }
 
     const valorPago = parseFloat(paymentAmount);
-    const valorTotal = parseFloat(selectedFinance.valor);
+    const valorTotal = parseFloat(selectedFinance.valorParcela);
 
     if (valorPago <= 0) {
       alert('O valor do pagamento deve ser maior que zero');
@@ -294,17 +296,7 @@ export default function ContasPagar() {
     }
 
     try {
-      if (valorPago === valorTotal) {
-        // Pagamento total
-        await financeService.update(selectedFinance.id, {
-          ...selectedFinance,
-          dataRealizacao: paymentDate,
-          formaPagamentoId: selectedPaymentMethod,
-        });
-        
-        loadData();
-        handlePaymentClose();
-      } else if (valorPago < valorTotal) {
+       if (valorPago < valorTotal) {
         // Pagamento parcial - perguntar se quer lançar diferença
         const lancarDiferenca = window.confirm(
           `O valor pago (R$ ${valorPago.toFixed(2)}) é menor que o valor total (R$ ${valorTotal.toFixed(2)}).\n\n` +
@@ -312,38 +304,28 @@ export default function ContasPagar() {
         );
 
         // Atualizar conta original com valor pago
-        await financeService.update(selectedFinance.id, {
+        await financeService.payment(selectedFinance.id, {
           ...selectedFinance,
-          valor: valorPago.toString(),
-          dataRealizacao: paymentDate,
+          valorPago: valorPago,
+          dataRealizacao: formatToISO(paymentDate),
           formaPagamentoId: selectedPaymentMethod,
+          lancarDiferenca: lancarDiferenca,
           observacao: `${selectedFinance.observacao || ''} [Pagamento Parcial - Valor Original: R$ ${valorTotal.toFixed(2)}]`.trim(),
         });
 
-        if (lancarDiferenca) {
-          // Criar nova conta com o saldo restante
-          const valorRestante = valorTotal - valorPago;
-          await financeService.create({
-            categoriaId: selectedFinance.categoriaId,
-            pessoaId: selectedFinance.pessoaId,
-            valor: valorRestante.toString(),
-            dataCompetencia: paymentDate,
-            dataVencimento: selectedFinance.dataVencimento,
-            dataRealizacao: null,
-            numeroDocumento: selectedFinance.numeroDocumento,
-            origem: 'Manual',
-            origemId: selectedFinance.id,
-            observacao: `Saldo restante da conta original (Ref: #${selectedFinance.id})`,
-            numeroParcela: selectedFinance.numeroParcela,
-          });
-        }
-
-        loadData();
-        handlePaymentClose();
       } else {
-        // Valor pago maior que o total
-        alert('O valor do pagamento não pode ser maior que o valor total da conta');
+        // Pagamento total
+        await financeService.payment(selectedFinance.id, {
+          ...selectedFinance,
+          valorPago: valorPago,
+          dataRealizacao: formatToISO(paymentDate),
+          formaPagamentoId: selectedPaymentMethod,
+        });
       }
+
+      loadData();
+      handlePaymentClose();
+
     } catch (error) {
       console.error('Erro ao processar pagamento:', error);
       alert('Erro ao processar pagamento.');
@@ -519,7 +501,7 @@ export default function ContasPagar() {
                 </TableCell>
                 <TableCell>{getFornecedorName(item.pessoaId)}</TableCell>
                 <TableCell>
-                  {parseFloat(item.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  {parseFloat(item.valorParcela).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </TableCell>
                 <TableCell>{item.numeroParcela}</TableCell>
                 <TableCell>{item.dataCompetencia}</TableCell>
@@ -679,7 +661,7 @@ export default function ContasPagar() {
             {selectedFinance && (
               <>
                 <Typography variant="body1">
-                  <strong>Valor Total:</strong> R$ {parseFloat(selectedFinance.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  <strong>Valor Total:</strong> R$ {parseFloat(selectedFinance.valorParcela).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </Typography>
                 <Typography variant="body2" color="textSecondary">
                   Informe o valor, a data e a forma de pagamento. Se o valor for menor que o total, você poderá escolher lançar a diferença.
@@ -710,19 +692,14 @@ export default function ContasPagar() {
                   >
                     {paymentMethods.map((method) => (
                       <MenuItem key={method.id} value={method.id}>
-                        {method.nome}
+                        {method.name}
                       </MenuItem>
                     ))}
                   </Select>
                 </FormControl>
-                {paymentAmount && parseFloat(paymentAmount) > 0 && parseFloat(paymentAmount) < parseFloat(selectedFinance.valor) && (
+                {paymentAmount && parseFloat(paymentAmount) > 0 && parseFloat(paymentAmount) < parseFloat(selectedFinance.valorParcela) && (
                   <Typography variant="body2" color="warning.main">
                     <strong>Atenção:</strong> O valor informado é menor que o total. Você será perguntado se deseja lançar a diferença de R$ {(parseFloat(selectedFinance.valor) - parseFloat(paymentAmount)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} como um novo lançamento.
-                  </Typography>
-                )}
-                {paymentAmount && parseFloat(paymentAmount) > parseFloat(selectedFinance.valor) && (
-                  <Typography variant="body2" color="error">
-                    <strong>Erro:</strong> O valor do pagamento não pode ser maior que o valor total.
                   </Typography>
                 )}
               </>
