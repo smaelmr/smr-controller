@@ -109,12 +109,12 @@ function Dashboard() {
   );
 
   return (
-    <Box>
+    <Box sx={{ width: '100%', maxWidth: '100%' }}>
       <Typography variant="h4" gutterBottom>
         Dashboard
       </Typography>
 
-      <Box sx={{ mb: 3, display: 'flex', gap: 2 }}>
+      <Box sx={{ mb: 3, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
         <FormControl sx={{ minWidth: 120 }}>
           <InputLabel>Mês</InputLabel>
           <Select
@@ -146,7 +146,7 @@ function Dashboard() {
         </FormControl>
       </Box>
 
-      <Grid container spacing={3}>
+      <Grid container spacing={2}>
         <Grid item xs={12} sm={6} md={4} lg={3}>
           <StatCard
             title="Total de Fretes"
