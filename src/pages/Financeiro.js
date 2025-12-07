@@ -159,7 +159,31 @@ export default function ContasPagar() {
 
   const handleOpen = (item = null) => {
     if (item) {
-      setFormData(item);
+      // Formatar datas para o formato YYYY-MM-DD esperado pelo input type="date"
+      const formatDate = (date) => {
+        if (!date) return '';
+        // Se a data já está no formato correto, retorna
+        if (/^\d{4}-\d{2}-\d{2}$/.test(date)) return date;
+        // Se tem hora, pega apenas a parte da data
+        if (date.includes('T')) return date.split('T')[0];
+        // Tenta converter outros formatos (DD/MM/YYYY, etc)
+        try {
+          const dateObj = new Date(date);
+          if (!isNaN(dateObj.getTime())) {
+            return dateObj.toISOString().split('T')[0];
+          }
+        } catch (e) {
+          console.error('Erro ao formatar data:', e);
+        }
+        return '';
+      };
+
+      setFormData({
+        ...item,
+        dataCompetencia: formatDate(item.dataCompetencia),
+        dataVencimento: formatDate(item.dataVencimento),
+        dataRealizacao: formatDate(item.dataRealizacao),
+      });
       setEditingId(item.id);
     } else {
       setFormData({

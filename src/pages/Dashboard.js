@@ -89,18 +89,18 @@ function Dashboard() {
   };
 
   const StatCard = ({ title, value, icon, color }) => (
-    <Card sx={{ height: '100%' }}>
-      <CardContent>
+    <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
         <Box display="flex" justifyContent="space-between" alignItems="center">
-          <Box>
+          <Box sx={{ flexGrow: 1 }}>
             <Typography color="textSecondary" gutterBottom variant="body2">
               {title}
             </Typography>
-            <Typography variant="h5" component="div" color={color}>
+            <Typography variant="h5" component="div" color={color} sx={{ wordBreak: 'break-word' }}>
               {value}
             </Typography>
           </Box>
-          <Box sx={{ color, opacity: 0.7 }}>
+          <Box sx={{ color, opacity: 0.7, ml: 2 }}>
             {icon}
           </Box>
         </Box>
@@ -147,7 +147,7 @@ function Dashboard() {
       </Box>
 
       <Grid container spacing={3}>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={12} sm={6} md={4} lg={3}>
           <StatCard
             title="Total de Fretes"
             value={`R$ ${stats.totalFretes.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
@@ -156,7 +156,7 @@ function Dashboard() {
           />
         </Grid>
 
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={12} sm={6} md={4} lg={3}>
           <StatCard
             title="Total Abastecimentos"
             value={`R$ ${stats.totalAbastecimento.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
@@ -165,7 +165,7 @@ function Dashboard() {
           />
         </Grid>
 
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={12} sm={6} md={4} lg={3}>
           <StatCard
             title="Média Consumo Geral"
             value={`${stats.mediaConsumoGeral} km/l`}
@@ -174,7 +174,7 @@ function Dashboard() {
           />
         </Grid>
 
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={12} sm={6} md={4} lg={3}>
           <StatCard
             title="Lucro Estimado"
             value={`R$ ${(stats.totalFretes - stats.totalAbastecimento).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}

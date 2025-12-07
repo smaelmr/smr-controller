@@ -30,8 +30,24 @@ export const fuelingService = {
   create: data => api.post('/fueling', data).then(res => res.data),
   update: (id, data) => api.put(`/fueling/${id}`, data).then(res => res.data),
   delete: id => api.delete(`/fueling/${id}`).then(res => res.data),
-  getByMonthYear: (month, year) => api.get(`/fueling?month=${month}&year=${year}`).then(res => Array.isArray(res.data) ? res.data : res.data.data || []),
-  getConsumoByMonthYear: (month, year) => api.get(`/fueling/consumo?month=${month}&year=${year}`).then(res => Array.isArray(res.data) ? res.data : res.data.data || []),
+  getByMonthYear: (month, year) => api.get(`/fueling?month=${month}&year=${year}`)
+    .then(res => {
+      if (!res || !res.data) return [];
+      return Array.isArray(res.data) ? res.data : res.data.data || [];
+    })
+    .catch(err => {
+      console.error('Erro ao buscar abastecimentos:', err);
+      return [];
+    }),
+  getConsumoByMonthYear: (month, year) => api.get(`/fueling/consumo?month=${month}&year=${year}`)
+    .then(res => {
+      if (!res || !res.data) return [];
+      return Array.isArray(res.data) ? res.data : res.data.data || [];
+    })
+    .catch(err => {
+      console.error('Erro ao buscar consumo:', err);
+      return [];
+    }),
 };
 
 export const driverService = {
@@ -82,7 +98,15 @@ export const tripService = {
   create: data => api.post('/trip', data).then(res => res.data),
   update: (id, data) => api.put(`/trip/${id}`, data).then(res => res.data),
   delete: id => api.delete(`/trip/${id}`).then(res => res.data),
-  getByMonthYear: (month, year) => api.get(`/trip?month=${month}&year=${year}`).then(res => res.data),
+  getByMonthYear: (month, year) => api.get(`/trip?month=${month}&year=${year}`)
+    .then(res => {
+      if (!res || !res.data) return [];
+      return Array.isArray(res.data) ? res.data : res.data.data || [];
+    })
+    .catch(err => {
+      console.error('Erro ao buscar viagens:', err);
+      return [];
+    }),
 };
 
 export const categoryService = {
