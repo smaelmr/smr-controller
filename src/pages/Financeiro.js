@@ -48,6 +48,7 @@ export default function ContasPagar() {
     dataFinal: '',
     fornecedorId: '',
     categoriaId: '',
+    status: '',
   });
 
   useEffect(() => {
@@ -141,6 +142,12 @@ export default function ContasPagar() {
       );
     }
 
+    if (filters.status) {
+      filtered = filtered.filter(item => 
+        item.status === filters.status
+      );
+    }
+
     setFilteredFinance(filtered);
   };
 
@@ -154,6 +161,7 @@ export default function ContasPagar() {
       dataFinal: '',
       fornecedorId: '',
       categoria: '',
+      status: '',
     });
   };
 
@@ -183,6 +191,7 @@ export default function ContasPagar() {
         dataCompetencia: formatDate(item.dataCompetencia),
         dataVencimento: formatDate(item.dataVencimento),
         dataRealizacao: formatDate(item.dataRealizacao),
+        valor: item.valorParcela,
       });
       setEditingId(item.id);
     } else {
@@ -481,6 +490,22 @@ export default function ContasPagar() {
             </FormControl>
           </Grid>
           <Grid item xs={12} sm={6} md={2}>
+            <FormControl fullWidth size="small" sx={{ minWidth: 150 }}>
+              <InputLabel>Status</InputLabel>
+              <Select
+                name="status"
+                value={filters.status}
+                onChange={handleFilterChange}
+                label="Status"
+              >
+                <MenuItem value="">Todos</MenuItem>
+                <MenuItem value="EM_ABERTO">Em Aberto</MenuItem>
+                <MenuItem value="EM_ATRASO">Em Atraso</MenuItem>
+                <MenuItem value={isPagar ? 'PAGO' : 'RECEBIDO'}>{isPagar ? 'Pago' : 'Recebido'}</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} sm={6} md={2}>
             <Button
               variant="outlined"
               startIcon={<Clear />}
@@ -542,10 +567,20 @@ export default function ContasPagar() {
                       <Payment />
                     </IconButton>
                   )}
-                  <IconButton color="primary" onClick={() => handleOpen(item)}>
+                  <IconButton 
+                    color="primary" 
+                    onClick={() => handleOpen(item)}
+                    disabled={!!item.dataRealizacao}
+                    title={item.dataRealizacao ? "Não é possível editar lançamento quitado" : "Editar"}
+                  >
                     <Edit />
                   </IconButton>
-                  <IconButton color="error" onClick={() => handleDelete(item.id)}>
+                  <IconButton 
+                    color="error" 
+                    onClick={() => handleDelete(item.id)}
+                    disabled={!!item.dataRealizacao}
+                    title={item.dataRealizacao ? "Não é possível excluir lançamento quitado" : "Excluir"}
+                  >
                     <Delete />
                   </IconButton>
                 </TableCell>

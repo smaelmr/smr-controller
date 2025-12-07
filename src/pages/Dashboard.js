@@ -89,18 +89,39 @@ function Dashboard() {
   };
 
   const StatCard = ({ title, value, icon, color }) => (
-    <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-        <Box display="flex" justifyContent="space-between" alignItems="center">
-          <Box sx={{ flexGrow: 1 }}>
-            <Typography color="textSecondary" gutterBottom variant="body2">
+    <Card sx={{ 
+      width: '100%',
+      minWidth: 350,
+      height: '100%', 
+      display: 'flex', 
+      flexDirection: 'column' 
+    }}>
+      <CardContent sx={{ 
+        flexGrow: 1, 
+        display: 'flex', 
+        flexDirection: 'column', 
+        justifyContent: 'space-between',
+        p: 2,
+        '&:last-child': { pb: 2 }
+      }}>
+        <Box display="flex" justifyContent="space-between" alignItems="flex-start">
+          <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+            <Typography color="textSecondary" gutterBottom variant="body2" noWrap>
               {title}
             </Typography>
-            <Typography variant="h5" component="div" color={color} sx={{ wordBreak: 'break-word' }}>
+            <Typography 
+              variant="h5" 
+              component="div" 
+              color={color} 
+              sx={{ 
+                wordBreak: 'break-word',
+                fontSize: { xs: '1.25rem', sm: '1.5rem' }
+              }}
+            >
               {value}
             </Typography>
           </Box>
-          <Box sx={{ color, opacity: 0.7, ml: 2 }}>
+          <Box sx={{ color, opacity: 0.7, ml: 2, flexShrink: 0 }}>
             {icon}
           </Box>
         </Box>
@@ -146,8 +167,8 @@ function Dashboard() {
         </FormControl>
       </Box>
 
-      <Grid container spacing={2}>
-        <Grid item xs={12} sm={6} md={4} lg={3}>
+      <Grid container spacing={2} sx={{ width: '100%', m: 0 }}>
+        <Grid item xs={12} sm={6} lg={3} sx={{ display: 'flex' }}>
           <StatCard
             title="Total de Fretes"
             value={`R$ ${stats.totalFretes.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
@@ -156,7 +177,7 @@ function Dashboard() {
           />
         </Grid>
 
-        <Grid item xs={12} sm={6} md={4} lg={3}>
+        <Grid item xs={12} sm={6} lg={3} sx={{ display: 'flex' }}>
           <StatCard
             title="Total Abastecimentos"
             value={`R$ ${stats.totalAbastecimento.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
@@ -165,7 +186,7 @@ function Dashboard() {
           />
         </Grid>
 
-        <Grid item xs={12} sm={6} md={4} lg={3}>
+        <Grid item xs={12} sm={6} lg={3} sx={{ display: 'flex' }}>
           <StatCard
             title="Média Consumo Geral"
             value={`${stats.mediaConsumoGeral} km/l`}
@@ -174,7 +195,7 @@ function Dashboard() {
           />
         </Grid>
 
-        <Grid item xs={12} sm={6} md={4} lg={3}>
+        <Grid item xs={12} sm={6} lg={3} sx={{ display: 'flex' }}>
           <StatCard
             title="Lucro Estimado"
             value={`R$ ${(stats.totalFretes - stats.totalAbastecimento).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
