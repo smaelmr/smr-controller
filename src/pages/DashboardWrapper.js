@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useMediaQuery, useTheme } from '@mui/material';
 import { tripService, fuelingService, vehicleService } from '../services/services';
-import Dashboard from './Dashboard';
-import DashboardMobile from './DashboardMobile';
+import Dashboard from './desktop/Dashboard';
+import DashboardMobile from './mobile/DashboardMobile';
 
 export default function DashboardWrapper() {
   const theme = useTheme();

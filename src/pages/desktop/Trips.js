@@ -25,10 +25,10 @@ import {
   useTheme,
 } from '@mui/material';
 import { Add, Edit, Delete, FilterList, Clear } from '@mui/icons-material';
-import { tripService, clientService, driverService, vehicleService, cityService } from '../services/services';
-import DateInputNative from '../components/common/DateInputNative';
-import CurrencyInput from '../components/common/CurrencyInput';
-import TripsMobile from './mobile/TripsMobile';
+import { tripService, clientService, driverService, vehicleService, cityService } from '../../services/services';
+import DateInputNative from '../../components/common/DateInputNative';
+import CurrencyInput from '../../components/common/CurrencyInput';
+import TripsMobile from '../mobile/TripsMobile';
 
 function Trips() {
   const theme = useTheme();

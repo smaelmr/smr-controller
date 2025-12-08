@@ -4,8 +4,8 @@ import {
   DialogContent, DialogTitle, TextField, Button, Select, MenuItem, FormControl, InputLabel
 } from '@mui/material';
 import { Add, Edit, Delete, Payment, FilterList } from '@mui/icons-material';
-import CurrencyInput from '../components/common/CurrencyInput';
-import { formatDateBR } from '../services/helpers/dateUtils';
+import CurrencyInput from '../../components/common/CurrencyInput';
+import { formatDateBR } from '../../services/helpers/dateUtils';
 
 export default function FinanceiroMobile({
   isPagar,
@@ -236,10 +236,13 @@ export default function FinanceiroMobile({
               <InputLabel>Categoria</InputLabel>
               <Select
                 name="categoriaId"
-                value={formData.categoriaId}
+                value={formData.categoriaId || ''}
                 onChange={handleChange}
                 label="Categoria"
               >
+                <MenuItem value="">
+                  <em>Selecione...</em>
+                </MenuItem>
                 {categorias.map((cat) => (
                   <MenuItem key={cat.id} value={cat.id}>
                     {cat.name}
@@ -252,10 +255,13 @@ export default function FinanceiroMobile({
               <InputLabel>{isPagar ? 'Fornecedor' : 'Cliente'}</InputLabel>
               <Select
                 name="pessoaId"
-                value={formData.pessoaId}
+                value={formData.pessoaId || ''}
                 onChange={handleChange}
                 label={isPagar ? 'Fornecedor' : 'Cliente'}
               >
+                <MenuItem value="">
+                  <em>Selecione...</em>
+                </MenuItem>
                 {allFornecedores.map((pessoa) => (
                   <MenuItem key={pessoa.uniqueId} value={pessoa.uniqueId}>
                     {pessoa.name}

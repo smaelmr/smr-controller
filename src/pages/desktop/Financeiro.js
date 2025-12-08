@@ -5,9 +5,9 @@ import {
   TableCell, TableContainer, TableHead, TableRow, TextField, Typography, Select, MenuItem, FormControl, InputLabel, Chip, Grid
 } from '@mui/material';
 import { Add, Edit, Delete, FilterList, Clear, Payment } from '@mui/icons-material';
-import { financeService, supplierService, gasStationService, clientService, categoryService, paymentMethodService } from '../services/services';
-import CurrencyInput from '../components/common/CurrencyInput';
-import { formatToISO, formatDateBR } from '../services/helpers/dateUtils';
+import { financeService, supplierService, gasStationService, clientService, categoryService, paymentMethodService } from '../../services/services';
+import CurrencyInput from '../../components/common/CurrencyInput';
+import { formatToISO, formatDateBR } from '../../services/helpers/dateUtils';
 
 export default function ContasPagar() {
   const { tipo } = useParams(); // 'pagar' ou 'receber'

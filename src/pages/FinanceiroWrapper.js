@@ -3,8 +3,8 @@ import { useParams } from 'react-router-dom';
 import { useMediaQuery, useTheme } from '@mui/material';
 import { financeService, supplierService, gasStationService, clientService, categoryService, paymentMethodService } from '../services/services';
 import { formatToISO } from '../services/helpers/dateUtils';
-import ContasPagar from './Financeiro';
-import FinanceiroMobile from './FinanceiroMobile';
+import ContasPagar from './desktop/Financeiro';
+import FinanceiroMobile from './mobile/FinanceiroMobile';
 
 export default function FinanceiroWrapper() {
   const theme = useTheme();
@@ -28,8 +28,8 @@ export default function FinanceiroWrapper() {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('');
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({
-    categoriaId: 0,
-    pessoaId: 0,
+    categoriaId: '',
+    pessoaId: '',
     valor: '',
     dataCompetencia: '',
     dataVencimento: '',
@@ -195,8 +195,8 @@ export default function FinanceiroWrapper() {
     } else {
       setEditingId(null);
       setFormData({
-        categoriaId: 0,
-        pessoaId: 0,
+        categoriaId: '',
+        pessoaId: '',
         valor: '',
         dataCompetencia: '',
         dataVencimento: '',

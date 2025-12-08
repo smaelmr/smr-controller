@@ -16,7 +16,7 @@ import {
   Speed,
   TrendingUp,
 } from '@mui/icons-material';
-import { tripService, fuelingService, vehicleService } from '../services/services';
+import { tripService, fuelingService, vehicleService } from '../../services/services';
 
 function Dashboard() {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
