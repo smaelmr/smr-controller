@@ -124,3 +124,11 @@ export const paymentMethodService = {
   update: (id, data) => api.put(`/payment-method/${id}`, data).then(res => res.data),
   delete: id => api.delete(`/payment-method/${id}`).then(res => res.data),
 };
+
+export const cityService = {
+  getAll: () => api.get('/city').then(res => Array.isArray(res.data) ? res.data : res.data.data || []),
+  getById: id => api.get(`/city/${id}`).then(res => res.data),
+  create: data => api.post('/city', data).then(res => res.data),
+  update: (id, data) => api.put(`/city/${id}`, data).then(res => res.data),
+  delete: id => api.delete(`/city/${id}`).then(res => res.data),
+};

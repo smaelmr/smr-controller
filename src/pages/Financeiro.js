@@ -2,12 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import {
   Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Paper, Table, TableBody,
-  TableCell, TableContainer, TableHead, TableRow, TextField, Typography, Select, MenuItem, FormControl, InputLabel, Checkbox, Chip, Grid
+  TableCell, TableContainer, TableHead, TableRow, TextField, Typography, Select, MenuItem, FormControl, InputLabel, Chip, Grid
 } from '@mui/material';
 import { Add, Edit, Delete, FilterList, Clear, Payment } from '@mui/icons-material';
 import { financeService, supplierService, gasStationService, clientService, categoryService, paymentMethodService } from '../services/services';
 import CurrencyInput from '../components/common/CurrencyInput';
-import { formatToISO } from '../services/helpers/dateUtils';
+import { formatToISO, formatDateBR } from '../services/helpers/dateUtils';
 
 export default function ContasPagar() {
   const { tipo } = useParams(); // 'pagar' ou 'receber'
@@ -53,10 +53,12 @@ export default function ContasPagar() {
 
   useEffect(() => {
     loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tipo]);
 
   useEffect(() => {
     applyFilters();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [finance, filters]);
 
   const loadData = async () => {
@@ -553,9 +555,9 @@ export default function ContasPagar() {
                   {parseFloat(item.valorParcela).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </TableCell>
                 <TableCell>{item.numeroParcela}</TableCell>
-                <TableCell>{item.dataCompetencia}</TableCell>
-                <TableCell>{item.dataVencimento}</TableCell>
-                <TableCell>{item.dataRealizacao || '-'}</TableCell>
+                <TableCell>{formatDateBR(item.dataCompetencia)}</TableCell>
+                <TableCell>{formatDateBR(item.dataVencimento)}</TableCell>
+                <TableCell>{formatDateBR(item.dataRealizacao)}</TableCell>
                 <TableCell>{item.origem}</TableCell>
                 <TableCell align="right">
                   {!item.dataRealizacao && (

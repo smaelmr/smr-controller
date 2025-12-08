@@ -53,3 +53,32 @@ export const formatDatesFromISO = (data, dateFields) => {
   });
   return formattedData;
 };
+
+/**
+ * Formata uma data para o formato brasileiro dd/MM/yyyy
+ * @param {string} dateString - Data em qualquer formato
+ * @returns {string} Data formatada como dd/MM/yyyy ou '-' se inválida
+ */
+export const formatDateBR = (dateString) => {
+  if (!dateString) return '-';
+  
+  try {
+    // Se já está no formato ISO (YYYY-MM-DD), converte diretamente
+    if (/^\d{4}-\d{2}-\d{2}/.test(dateString)) {
+      const [year, month, day] = dateString.split('T')[0].split('-');
+      return `${day}/${month}/${year}`;
+    }
+    
+    // Tenta criar objeto Date
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return '-';
+    
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    
+    return `${day}/${month}/${year}`;
+  } catch (e) {
+    return '-';
+  }
+};

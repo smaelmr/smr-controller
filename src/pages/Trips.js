@@ -23,7 +23,7 @@ import {
   Grid,
 } from '@mui/material';
 import { Add, Edit, Delete, FilterList, Clear } from '@mui/icons-material';
-import { tripService, clientService, driverService, vehicleService } from '../services/services';
+import { tripService, clientService, driverService, vehicleService, cityService } from '../services/services';
 import DateInputNative from '../components/common/DateInputNative';
 import CurrencyInput from '../components/common/CurrencyInput';
 
@@ -33,16 +33,19 @@ function Trips() {
   const [clients, setClients] = useState([]);
   const [drivers, setDrivers] = useState([]);
   const [vehicles, setVehicles] = useState([]);
+  const [cities, setCities] = useState([]);
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({
     valorFrete: '',
-    origem: '',
-    destino: '',
+    origemId: '',
+    destinoId: '',
     clienteId: '',
     motoristaId: '',
     veiculoId: '',
-    agenciamento: '',
+    valorAgenciamento: '',
+    valorPedagio: '',
+    numeroDocumento: '',
     dataColeta: '',
     dataEntrega: '',
     observacao: '',
@@ -69,17 +72,19 @@ function Trips() {
 
   const loadData = async () => {
     try {
-      const [tripsData, clientsData, driversData, vehiclesData] = await Promise.all([
+      const [tripsData, clientsData, driversData, vehiclesData, citiesData] = await Promise.all([
         tripService.getAll(),
         clientService.getAll(),
         driverService.getAll(),
-        vehicleService.getAll()
+        vehicleService.getAll(),
+        cityService.getAll()
       ]);
 
       setTrips(Array.isArray(tripsData) ? tripsData : []);
       setClients(Array.isArray(clientsData) ? clientsData : []);
       setDrivers(Array.isArray(driversData) ? driversData : []);
       setVehicles(Array.isArray(vehiclesData) ? vehiclesData : []);
+      setCities(Array.isArray(citiesData) ? citiesData : []);
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
       // Inicializar com arrays vazios em caso de erro
@@ -87,6 +92,7 @@ function Trips() {
       setClients([]);
       setDrivers([]);
       setVehicles([]);
+      setCities([]);
     }
   };
 
@@ -143,12 +149,14 @@ function Trips() {
     } else {
       setFormData({
         valorFrete: '',
-        origem: '',
-        destino: '',
+        origemId: '',
+        destinoId: '',
         clienteId: '',
         motoristaId: '',
         veiculoId: '',
-        agenciamento: '',
+        valorAgenciamento: '',
+        valorPedagio: '',
+        numeroDocumento: '',
         dataColeta: '',
         dataEntrega: '',
         observacao: '',
@@ -167,32 +175,30 @@ function Trips() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = () => {
-    if (editingId) {
-      tripService.update(editingId, formData);
-    } else {
-      const newTrip = tripService.create(formData);
-      
-      // Criar automaticamente uma conta a receber quando criar nova viagem
-      //receivableService.create({
-      //  clienteId: formData.clienteId,
-      //  valor: formData.valorFrete,
-      //  dataLancamento: formData.dataColeta,
-      //  dataRecebimento: '',
-      //  origem: 'Viagem',
-      //  referencia: newTrip.id,
-      //  observacao: formData.observacao || '',
-      //  recebido: false,
-      //});
+  const handleSubmit = async () => {
+    try {
+      if (editingId) {
+        await tripService.update(editingId, formData);
+      } else {
+        await tripService.create(formData);
+      }
+      await loadData();
+      handleClose();
+    } catch (error) {
+      console.error('Erro ao salvar viagem:', error);
+      alert('Erro ao salvar a viagem.');
     }
-    loadData();
-    handleClose();
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm('Deseja realmente excluir esta viagem?')) {
-      tripService.delete(id);
-      loadData();
+      try {
+        await tripService.delete(id);
+        await loadData();
+      } catch (error) {
+        console.error('Erro ao excluir viagem:', error);
+        alert('Erro ao excluir a viagem.');
+      }
     }
   };
 
@@ -209,6 +215,11 @@ function Trips() {
   const getVehiclePlaca = (id) => {
     const vehicle = vehicles.find(v => v.id === id);
     return vehicle ? vehicle.placa : '-';
+  };
+
+  const getCityName = (id) => {
+    const city = cities.find(c => c.id === id);
+    return city ? city.name : '-';
   };
 
   return (
@@ -321,8 +332,8 @@ function Trips() {
           <TableBody>
             {filteredTrips.map((trip) => (
               <TableRow key={trip.id}>
-                <TableCell>{trip.origem}</TableCell>
-                <TableCell>{trip.destino}</TableCell>
+                <TableCell>{getCityName(trip.origemId)}</TableCell>
+                <TableCell>{getCityName(trip.destinoId)}</TableCell>
                 <TableCell>{getClientName(trip.clienteId)}</TableCell>
                 <TableCell>{getDriverName(trip.motoristaId)}</TableCell>
                 <TableCell>{getVehiclePlaca(trip.veiculoId)}</TableCell>
@@ -346,38 +357,121 @@ function Trips() {
         <DialogTitle>{editingId ? 'Editar Viagem' : 'Nova Viagem'}</DialogTitle>
         <DialogContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 2 }}>
-            <CurrencyInput
-              label="Valor do Frete"
-              name="valorFrete"
-              value={formData.valorFrete}
-              onChange={handleChange}
-              fullWidth
-            />
+            {/* Linha 1: Valor do Frete, Data Coleta, Data Entrega */}
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <CurrencyInput
+                label="Valor do Frete"
+                name="valorFrete"
+                value={formData.valorFrete}
+                onChange={handleChange}
+                fullWidth
+              />
+              <DateInputNative
+                label="Data de Coleta"
+                name="dataColeta"
+                value={formData.dataColeta}
+                onChange={handleChange}
+                fullWidth
+              />
+              <DateInputNative
+                label="Data de Entrega"
+                name="dataEntrega"
+                value={formData.dataEntrega}
+                onChange={handleChange}
+                fullWidth
+              />
+            </Box>
 
-            <CurrencyInput
-              label="Agenciamento"
-              name="agenciamento"
-              value={formData.agenciamento}
-              onChange={handleChange}
-              fullWidth
-            />
-            
-            <TextField
-              label="Origem"
-              name="origem"
-              value={formData.origem}
-              onChange={handleChange}
-              fullWidth
-            />
-            
-            <TextField
-              label="Destino"
-              name="destino"
-              value={formData.destino}
-              onChange={handleChange}
-              fullWidth
-            />
-            
+            {/* Linha 2: Origem e Destino */}
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <FormControl fullWidth>
+                <InputLabel>Origem</InputLabel>
+                <Select
+                  name="origemId"
+                  value={formData.origemId}
+                  onChange={handleChange}
+                  label="Origem"
+                >
+                  {cities.map((city) => (
+                    <MenuItem key={city.id} value={city.id}>
+                      {city.name}/{city.state}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              <FormControl fullWidth>
+                <InputLabel>Destino</InputLabel>
+                <Select
+                  name="destinoId"
+                  value={formData.destinoId}
+                  onChange={handleChange}
+                  label="Destino"
+                >
+                  {cities.map((city) => (
+                    <MenuItem key={city.id} value={city.id}>
+                      {city.name}/{city.state}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+
+            {/* Linha 3: Agenciamento e Pedágio */}
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <CurrencyInput
+                label="Agenciamento"
+                name="valorAgenciamento"
+                value={formData.valorAgenciamento}
+                onChange={handleChange}
+                fullWidth
+              />
+              <CurrencyInput
+                label="Valor Pedágio"
+                name="valorPedagio"
+                value={formData.valorPedagio}
+                onChange={handleChange}
+                fullWidth
+              />
+            </Box>
+
+            {/* Linha 4: Veículo e Motorista */}
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <FormControl fullWidth>
+                <InputLabel>Veículo</InputLabel>
+                <Select
+                  name="veiculoId"
+                  value={formData.veiculoId}
+                  onChange={handleChange}
+                  label="Veículo"
+                >
+                  {vehicles.map((vehicle) => (
+                    <MenuItem key={vehicle.id} value={vehicle.id}>
+                      {vehicle.placa} - {vehicle.marca} {vehicle.modelo}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              <FormControl fullWidth>
+                <InputLabel>Motorista</InputLabel>
+                <Select
+                  name="motoristaId"
+                  value={formData.motoristaId}
+                  onChange={handleChange}
+                  label="Motorista"
+                >
+                  {drivers.map((driver) => (
+                    <MenuItem key={driver.id} value={driver.id}>
+                      {driver.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+
+            {/* Linha 5: Cliente e Número do Documento */}
+            <Box sx={{ display: 'flex', gap: 2 }}>
             <FormControl fullWidth>
               <InputLabel>Cliente</InputLabel>
               <Select
@@ -393,55 +487,16 @@ function Trips() {
                 ))}
               </Select>
             </FormControl>
-            
-            <FormControl fullWidth>
-              <InputLabel>Motorista</InputLabel>
-              <Select
-                name="motoristaId"
-                value={formData.motoristaId}
+            <TextField
+                label="Número do Documento"
+                name="numeroDocumento"
+                value={formData.numeroDocumento}
                 onChange={handleChange}
-                label="Motorista"
-              >
-                {drivers.map((driver) => (
-                  <MenuItem key={driver.id} value={driver.id}>
-                    {driver.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            <FormControl fullWidth>
-              <InputLabel>Veículo</InputLabel>
-              <Select
-                name="veiculoId"
-                value={formData.veiculoId}
-                onChange={handleChange}
-                label="Veículo"
-              >
-                {vehicles.map((vehicle) => (
-                  <MenuItem key={vehicle.id} value={vehicle.id}>
-                    {vehicle.placa} - {vehicle.marca} {vehicle.modelo}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            
-            <DateInputNative
-              label="Data de Coleta"
-              name="dataColeta"
-              value={formData.dataColeta}
-              onChange={handleChange}
-              fullWidth
+                fullWidth
             />
+            </Box>
             
-            <DateInputNative
-              label="Data de Entrega"
-              name="dataEntrega"
-              value={formData.dataEntrega}
-              onChange={handleChange}
-              fullWidth
-            />
-            
+            {/* Observação */}
             <TextField
               label="Observação"
               name="observacao"

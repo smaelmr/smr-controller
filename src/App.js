@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider as MuiThemeProvider, createTheme, CssBaseline } from '@mui/material';
 import { ThemeProvider } from './contexts/ThemeContext';
 import Layout from './components/layout/Layout';
-import Dashboard from './pages/Dashboard';
+import DashboardWrapper from './pages/DashboardWrapper';
 import Vehicles from './pages/Vehicles';
 import GasStations from './pages/GasStations';
 import Suppliers from './pages/Suppliers';
@@ -11,7 +11,7 @@ import Drivers from './pages/Drivers';
 import Clients from './pages/Clients';
 import Trips from './pages/Trips';
 import Fuelings from './pages/Fuelings';
-import Financeiro from './pages/Financeiro';
+import FinanceiroWrapper from './pages/FinanceiroWrapper';
 import { useTheme } from './contexts/ThemeContext';
 
 // Função que cria o tema baseado no modo (claro/escuro)
@@ -56,7 +56,7 @@ function AppContent() {
         <Routes>
           <Route path="/" element={<Layout />}>
             <Route index element={<Navigate to="/dashboard" replace />} />
-            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="dashboard" element={<DashboardWrapper />} />
             <Route path="vehicles" element={<Vehicles />} />
             <Route path="gas-stations" element={<GasStations />} />
             <Route path="suppliers" element={<Suppliers />} />
@@ -64,7 +64,7 @@ function AppContent() {
             <Route path="clients" element={<Clients />} />
             <Route path="trips" element={<Trips />} />
             <Route path="fuelings" element={<Fuelings />} />
-            <Route path="financeiro/:tipo" element={<Financeiro />} />
+            <Route path="financeiro/:tipo" element={<FinanceiroWrapper />} />
           </Route>
         </Routes>
       </BrowserRouter>

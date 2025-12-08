@@ -21,12 +21,26 @@ import { tripService, fuelingService, vehicleService } from '../services/service
 function Dashboard() {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedVehicle, setSelectedVehicle] = useState('');
+  const [vehicles, setVehicles] = useState([]);
   const [stats, setStats] = useState({
     totalFretes: 0,
     totalAbastecimento: 0,
     mediaConsumoGeral: 0,
     consumoPorVeiculo: [],
   });
+
+  useEffect(() => {
+    // Carregar veículos
+    (async () => {
+      try {
+        const vehiclesData = await vehicleService.getAll();
+        setVehicles(vehiclesData || []);
+      } catch (error) {
+        console.error('Erro ao carregar veículos:', error);
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     // Função assíncrona auto-executável para carregar os dados
@@ -37,7 +51,8 @@ function Dashboard() {
         console.error('Erro ao carregar dados:', error);
       }
     })();
-  }, [selectedMonth, selectedYear]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedMonth, selectedYear, selectedVehicle]);
 
   const calculateStats = async () => {
     try {
@@ -49,9 +64,16 @@ function Dashboard() {
       ]);
 
       // Garantir que os dados são arrays
-      const tripsArray = Array.isArray(results[0]) ? results[0] : [];
-      const fuelingsArray = Array.isArray(results[1]) ? results[1] : [];
-      const consumoArray = Array.isArray(results[2]) ? results[2] : [];
+      let tripsArray = Array.isArray(results[0]) ? results[0] : [];
+      let fuelingsArray = Array.isArray(results[1]) ? results[1] : [];
+      let consumoArray = Array.isArray(results[2]) ? results[2] : [];
+
+      // Aplicar filtro de veículo se selecionado
+      if (selectedVehicle) {
+        tripsArray = tripsArray.filter(trip => trip.veiculoId === selectedVehicle);
+        fuelingsArray = fuelingsArray.filter(fuel => fuel.veiculoId === selectedVehicle);
+        consumoArray = consumoArray.filter(consumo => consumo.veiculoId === selectedVehicle);
+      }
 
       // Calcular totais
       const totalFretes = tripsArray.reduce((sum, trip) => sum + parseFloat(trip.valorFrete || 0), 0);
@@ -161,6 +183,22 @@ function Dashboard() {
             {[2023, 2024, 2025, 2026].map((year) => (
               <MenuItem key={year} value={year}>
                 {year}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
+        <FormControl sx={{ minWidth: 180 }}>
+          <InputLabel>Veículo</InputLabel>
+          <Select
+            value={selectedVehicle}
+            label="Veículo"
+            onChange={(e) => setSelectedVehicle(e.target.value)}
+          >
+            <MenuItem value="">Todos os Veículos</MenuItem>
+            {vehicles.map((vehicle) => (
+              <MenuItem key={vehicle.id} value={vehicle.id}>
+                {vehicle.placa}
               </MenuItem>
             ))}
           </Select>
