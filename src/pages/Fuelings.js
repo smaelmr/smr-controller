@@ -323,7 +323,7 @@ function Fuelings() {
   if (isMobile) {
     return (
       <FuelingsMobile
-        fuelings={filtered}
+        fuelings={displayedFuelings}
         vehicles={vehicles}
         gasStations={gasStations}
         filterMonth={filterMonth}

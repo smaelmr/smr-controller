@@ -367,36 +367,18 @@ export default function ContasPagar() {
     }
   };
 
-  const getFornecedorName = (fornecedorId) => {
-    if (!fornecedorId) return '-';
-    
-    if (typeof fornecedorId === 'string' && fornecedorId.includes('-')) {
-      const [type, id] = fornecedorId.split('-');
-      const numericId = parseInt(id);
-      
-      if (type === 'supplier') {
-        const supplier = suppliers.find(s => s.pessoaId === numericId);
-        return supplier ? supplier.name : '-';
-      } else if (type === 'station') {
-        const station = gasStations.find(g => g.pessoaId === numericId);
-        return station ? station.name : '-';
-      } else if (type === 'client') {
-        const client = clients.find(c => c.pessoaId === numericId);
-        return client ? client.name : '-';
-      }
-    }
-    
-    const numericId = typeof fornecedorId === 'number' ? fornecedorId : parseInt(fornecedorId);
+  const getPessoaName = (pessoaId) => {
+    if (!pessoaId) return '-';
     
     // Tentar encontrar em fornecedores/postos (contas a pagar)
-    const supplier = suppliers.find(s => s.id === numericId);
+    const supplier = suppliers.find(s => s.pessoaId === pessoaId);
     if (supplier) return supplier.name;
     
-    const station = gasStations.find(g => g.id === numericId);
+    const station = gasStations.find(g => g.pessoaId === pessoaId);
     if (station) return station.name;
     
     // Tentar encontrar em clientes (contas a receber)
-    const client = clients.find(c => c.id === numericId);
+    const client = clients.find(c => c.pessoaId === pessoaId);
     if (client) return client.name;
     
     return '-';
@@ -550,7 +532,7 @@ export default function ContasPagar() {
                     size="small" 
                   />
                 </TableCell>
-                <TableCell>{getFornecedorName(item.pessoaId)}</TableCell>
+                <TableCell>{getPessoaName(item.pessoaId)}</TableCell>
                 <TableCell>
                   {parseFloat(item.valorParcela).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </TableCell>

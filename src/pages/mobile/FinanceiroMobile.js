@@ -36,7 +36,7 @@ export default function FinanceiroMobile({
   setPaymentDate,
   setSelectedPaymentMethod,
   getCategoriaName,
-  getFornecedorName,
+  getPessoaName,
 }) {
   const [filterOpen, setFilterOpen] = React.useState(false);
 
@@ -83,7 +83,7 @@ export default function FinanceiroMobile({
                     sx={{ mb: 1 }}
                   />
                   <Typography variant="body2" color="textSecondary">
-                    {getFornecedorName(item.pessoaId)}
+                    {getPessoaName(item.pessoaId)}
                   </Typography>
                 </Box>
                 <Typography variant="h6" color="primary">

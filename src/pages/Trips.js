@@ -29,6 +29,7 @@ import { tripService, clientService, driverService, vehicleService, cityService 
 import DateInputNative from '../components/common/DateInputNative';
 import CurrencyInput from '../components/common/CurrencyInput';
 import TripsMobile from './mobile/TripsMobile';
+import { formatToISO } from '../services/helpers/dateUtils';
 
 function Trips() {
   const theme = useTheme();
@@ -149,8 +150,19 @@ function Trips() {
 
   const handleOpen = (trip = null) => {
     if (trip) {
-      setFormData(trip);
       setEditingId(trip.id);
+
+      const formatDate = (dateString) => {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        return date.toISOString().split('T')[0];
+      };
+
+      setFormData({
+        ...trip,
+        dataColeta: formatDate(trip.dataColeta),
+        dataEntrega: formatDate(trip.dataEntrega),
+      });
     } else {
       setFormData({
         valorFrete: '',
@@ -182,10 +194,19 @@ function Trips() {
 
   const handleSubmit = async () => {
     try {
+      const dataToSummit = { 
+        ...formData,
+        valorFrete: parseFloat(formData.valorFrete),
+        valorAgenciamento: parseFloat(formData.valorAgenciamento),
+        valorPedagio: parseFloat(formData.valorPedagio),
+        dataColeta: formatToISO(formData.dataColeta),
+        dataEntrega: formatToISO(formData.dataEntrega),
+      };
+     
       if (editingId) {
-        await tripService.update(editingId, formData);
+        await tripService.update(editingId, dataToSummit);
       } else {
-        await tripService.create(formData);
+        await tripService.create(dataToSummit);
       }
       await loadData();
       handleClose();

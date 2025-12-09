@@ -376,7 +376,7 @@ export default function FinanceiroWrapper() {
     return categoria ? categoria.name : '-';
   };
 
-  const getFornecedorName = (id) => {
+  const getPessoaName = (id) => {
     const allFornecedores = [...suppliers, ...gasStations, ...clients];
     const fornecedor = allFornecedores.find(f => f.uniqueId === id);
     return fornecedor ? fornecedor.name : '-';
@@ -415,7 +415,7 @@ export default function FinanceiroWrapper() {
         setPaymentDate={setPaymentDate}
         setSelectedPaymentMethod={setSelectedPaymentMethod}
         getCategoriaName={getCategoriaName}
-        getFornecedorName={getFornecedorName}
+        getPessoaName={getPessoaName}
       />
     );
   }
