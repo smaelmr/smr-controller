@@ -255,6 +255,7 @@ export default function ContasPagar() {
       const dataToSend = {
         ...formData,
         totalParcelas: parseInt(formData.totalParcelas || 1, 10),
+        numeroParcela: parseInt(formData.numeroParcela || 1, 10),
         valor: parseFloat(formData.valor || 0),
         valorParcela: parseFloat(formData.valorParcela || 0),
         origemId: formData.origem === 'Manual' ? null : formData.origemId,
