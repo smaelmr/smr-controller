@@ -309,6 +309,7 @@ export default function FuelingsMobile({
               value={formData.dataAbastecimento}
               onChange={handleChange}
               InputLabelProps={{ shrink: true }}
+              inputProps={{ style: { minHeight: '44px' } }}
               fullWidth
             />
 

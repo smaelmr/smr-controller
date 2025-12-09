@@ -156,6 +156,7 @@ export default function FinanceiroMobile({
               value={filters.dataInicial}
               onChange={handleFilterChange}
               InputLabelProps={{ shrink: true }}
+              inputProps={{ style: { minHeight: '44px' } }}
               fullWidth
             />
             <TextField
@@ -165,6 +166,7 @@ export default function FinanceiroMobile({
               value={filters.dataFinal}
               onChange={handleFilterChange}
               InputLabelProps={{ shrink: true }}
+              inputProps={{ style: { minHeight: '44px' } }}
               fullWidth
             />
             <FormControl fullWidth>
@@ -318,6 +320,7 @@ export default function FinanceiroMobile({
               value={formData.dataCompetencia}
               onChange={handleChange}
               InputLabelProps={{ shrink: true }}
+              inputProps={{ style: { minHeight: '44px' } }}
               fullWidth
             />
 
@@ -328,6 +331,7 @@ export default function FinanceiroMobile({
               value={formData.dataVencimento}
               onChange={handleChange}
               InputLabelProps={{ shrink: true }}
+              inputProps={{ style: { minHeight: '44px' } }}
               fullWidth
             />
 
@@ -346,6 +350,7 @@ export default function FinanceiroMobile({
               value={formData.dataRealizacao}
               onChange={handleChange}
               InputLabelProps={{ shrink: true }}
+              inputProps={{ style: { minHeight: '44px' } }}
               fullWidth
             />
 
@@ -398,6 +403,7 @@ export default function FinanceiroMobile({
                   value={paymentDate}
                   onChange={(e) => setPaymentDate(e.target.value)}
                   InputLabelProps={{ shrink: true }}
+                  inputProps={{ style: { minHeight: '44px' } }}
                   fullWidth
                 />
                 <FormControl fullWidth>
