@@ -257,6 +257,8 @@ export default function FinanceiroWrapper() {
         valorParcela: parseFloat(formData.valorParcela),
       };
 
+      console.log('Dados a serem enviados:', dataToSubmit);
+
       if (editingId) {
         if (isPagar) {
           await financeService.updatePayment(editingId, dataToSubmit);
@@ -331,6 +333,7 @@ export default function FinanceiroWrapper() {
         dataRealizacao: formatToISO(paymentDate),
         valorPago: valorPago,
         formaPagamentoId: parseInt(selectedPaymentMethod),
+        numeroParcela: parseInt(selectedFinance.numeroParcela),
       };
 
       if (isPagar) {
