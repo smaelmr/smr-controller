@@ -270,23 +270,37 @@ export default function FinanceiroMobile({
               </Select>
             </FormControl>
 
-            <CurrencyInput
-              label="Valor"
-              name="valor"
-              value={formData.valor}
-              onChange={handleChange}
-              fullWidth
-            />
+            {!editingId && (
+              <CurrencyInput
+                label="Valor"
+                name="valor"
+                value={formData.valor}
+                onChange={handleChange}
+                fullWidth
+              />
+            )}
 
-            <TextField 
-              label="Quantidade de Parcelas" 
-              name="totalParcelas" 
-              type="number"
-              value={formData.totalParcelas} 
-              onChange={handleChange} 
-              fullWidth
-              inputProps={{ min: 1 }}
-            />
+            {!editingId ? (
+              <TextField 
+                label="Quantidade de Parcelas" 
+                name="totalParcelas" 
+                type="number"
+                value={formData.totalParcelas} 
+                onChange={handleChange} 
+                fullWidth
+                inputProps={{ min: 1 }}
+              />
+            ) : (
+              <TextField 
+                label="Número da Parcela" 
+                name="numeroParcela" 
+                type="number"
+                value={formData.numeroParcela} 
+                onChange={handleChange} 
+                fullWidth
+                inputProps={{ min: 1 }}
+              />
+            )}
 
             <CurrencyInput
               label="Valor da Parcela"
@@ -294,7 +308,7 @@ export default function FinanceiroMobile({
               value={formData.valorParcela}
               onChange={handleChange}
               fullWidth
-              disabled
+              disabled={!editingId}
             />
 
             <TextField

@@ -39,6 +39,7 @@ export default function FinanceiroWrapper() {
     origemId: null,
     observacao: '',
     totalParcelas: 1,
+    numeroParcela: 1,
     valorParcela: '',
     lancarDiferenca: false,
   });
@@ -189,6 +190,7 @@ export default function FinanceiroWrapper() {
         origemId: finance.origemId || null,
         observacao: finance.observacao || '',
         totalParcelas: finance.totalParcelas || 1,
+        numeroParcela: finance.numeroParcela || 1,
         valorParcela: finance.valorParcela || '',
         lancarDiferenca: false,
       });
@@ -206,6 +208,7 @@ export default function FinanceiroWrapper() {
         origemId: null,
         observacao: '',
         totalParcelas: 1,
+        numeroParcela: 1,
         valorParcela: '',
         lancarDiferenca: false,
       });
@@ -221,7 +224,8 @@ export default function FinanceiroWrapper() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     
-    if (name === 'valor' || name === 'totalParcelas') {
+    // Só recalcula valorParcela automaticamente se estiver criando (não editando)
+    if (!editingId && (name === 'valor' || name === 'totalParcelas')) {
       const valor = name === 'valor' ? parseFloat(value) || 0 : parseFloat(formData.valor) || 0;
       const parcelas = name === 'totalParcelas' ? parseInt(value) || 1 : parseInt(formData.totalParcelas) || 1;
       const valorParcela = parcelas > 0 ? (valor / parcelas).toFixed(2) : '0.00';
@@ -242,13 +246,14 @@ export default function FinanceiroWrapper() {
         ...formData,
         categoriaId: parseInt(formData.categoriaId),
         pessoaId: parseInt(formData.pessoaId),
-        valor: parseFloat(formData.valor),
+        valor: editingId ? parseFloat(formData.valorParcela) : parseFloat(formData.valor),
         dataCompetencia: formatToISO(formData.dataCompetencia),
         dataVencimento: formatToISO(formData.dataVencimento),
         dataRealizacao: formData.dataRealizacao ? formatToISO(formData.dataRealizacao) : null,
         numeroDocumento: formData.numeroDocumento || null,
         origemId: formData.origem === 'Manual' ? null : formData.origemId,
-        totalParcelas: parseInt(formData.totalParcelas),
+        totalParcelas: editingId ? 1 : parseInt(formData.totalParcelas),
+        numeroParcela: editingId ? parseInt(formData.numeroParcela) : 1,
         valorParcela: parseFloat(formData.valorParcela),
       };
 

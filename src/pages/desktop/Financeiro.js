@@ -194,6 +194,7 @@ export default function ContasPagar() {
         dataVencimento: formatDate(item.dataVencimento),
         dataRealizacao: formatDate(item.dataRealizacao),
         valor: item.valorParcela,
+        numeroParcela: item.numeroParcela || 1,
       });
       setEditingId(item.id);
     } else {
@@ -205,6 +206,7 @@ export default function ContasPagar() {
         dataVencimento: '',
         dataRealizacao: '',
         totalParcelas: 1,
+        numeroParcela: 1,
         numeroDocumento: '',
         origem: 'Manual',
         origemId: null,
@@ -611,24 +613,38 @@ export default function ContasPagar() {
               </Select>
             </FormControl>
 
-            <CurrencyInput
-              label="Valor"
-              name="valor"
-              value={formData.valor}
-              onChange={handleChange}
-              fullWidth
-            />
+            {!editingId && (
+              <CurrencyInput
+                label="Valor"
+                name="valor"
+                value={formData.valor}
+                onChange={handleChange}
+                fullWidth
+              />
+            )}
 
             <Box sx={{ display: 'flex', gap: 2 }}>
-              <TextField 
-                label="Quantidade de Parcelas" 
-                name="totalParcelas" 
-                type="number"
-                value={formData.totalParcelas} 
-                onChange={handleChange} 
-                fullWidth
-                inputProps={{ min: 1 }}
-              />
+              {!editingId ? (
+                <TextField 
+                  label="Quantidade de Parcelas" 
+                  name="totalParcelas" 
+                  type="number"
+                  value={formData.totalParcelas} 
+                  onChange={handleChange} 
+                  fullWidth
+                  inputProps={{ min: 1 }}
+                />
+              ) : (
+                <TextField 
+                  label="Número da Parcela" 
+                  name="numeroParcela" 
+                  type="number"
+                  value={formData.numeroParcela} 
+                  onChange={handleChange} 
+                  fullWidth
+                  inputProps={{ min: 1 }}
+                />
+              )}
 
               <CurrencyInput
                 label="Valor da Parcela"
@@ -636,7 +652,7 @@ export default function ContasPagar() {
                 value={formData.valorParcela}
                 onChange={handleChange}
                 fullWidth
-                disabled
+                disabled={!editingId}
               />
             </Box>
 
