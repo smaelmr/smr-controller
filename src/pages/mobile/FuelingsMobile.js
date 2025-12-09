@@ -330,10 +330,9 @@ export default function FuelingsMobile({
                 onChange={handleChange}
                 label="Tipo de Combustível"
               >
-                <MenuItem value="Diesel">Diesel</MenuItem>
-                <MenuItem value="Gasolina">Gasolina</MenuItem>
-                <MenuItem value="Etanol">Etanol</MenuItem>
-                <MenuItem value="GNV">GNV</MenuItem>
+                <MenuItem value="Diesel_S500">Diesel S500</MenuItem>
+                <MenuItem value="Diesel_S10">Diesel S10</MenuItem>
+                <MenuItem value="Arla">Arla</MenuItem>
               </Select>
             </FormControl>
 
