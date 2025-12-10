@@ -79,6 +79,8 @@ function Fuelings() {
     tipoCombustivel: 'Diesel',
     numeroDocumento: '',
     cheio: false,
+    valorArla: '',
+    valorDiversos: '',
   });
 
 
@@ -178,6 +180,8 @@ function Fuelings() {
         tipoCombustivel: 'Diesel',
         numeroDocumento: '',
         cheio: false,
+        valorArla: '',
+        valorDiversos: '',
       });
       setEditingId(null);
     }
@@ -221,7 +225,9 @@ function Fuelings() {
             litros: parseFloat(formData.litros || 0),
             km: parseInt(formData.km || 0, 10),
             dataAbastecimento: dataHoraCompleta, // Envia sem conversão UTC
-            cheio: Boolean(formData.cheio)
+            cheio: Boolean(formData.cheio),
+            valorArla: parseFloat(formData.valorArla || 0),
+            valorDiversos: parseFloat(formData.valorDiversos || 0),
           };
 
           // Remove o campo horaAbastecimento do objeto final
@@ -573,6 +579,22 @@ function Fuelings() {
               onChange={handleChange}
               fullWidth
             />
+            <CurrencyInput
+              label="Valor Arla"
+              name="valorArla"
+              value={formData.valorArla}
+              onChange={handleChange}
+              fullWidth
+            />
+            {!editingId && (
+              <CurrencyInput
+                label="Valor Diversos"
+                name="valorDiversos"
+                value={formData.valorDiversos}
+                onChange={handleChange}
+                fullWidth
+              />
+            )}
             <TextField
               label="Quilometragem"
               name="km"

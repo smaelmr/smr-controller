@@ -283,6 +283,24 @@ export default function FuelingsMobile({
               fullWidth
             />
 
+            <CurrencyInput
+              label="Valor Arla"
+              name="valorArla"
+              value={formData.valorArla}
+              onChange={handleChange}
+              fullWidth
+            />
+
+            {!editingId && (
+              <CurrencyInput
+                label="Valor Diversos"
+                name="valorDiversos"
+                value={formData.valorDiversos}
+                onChange={handleChange}
+                fullWidth
+              />
+            )}
+
             <TextField
               label="Litros"
               name="litros"
