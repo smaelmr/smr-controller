@@ -77,7 +77,7 @@ function Dashboard() {
 
       // Calcular totais
       const totalFretes = tripsArray.reduce((sum, trip) => sum + parseFloat(trip.valorFrete || 0), 0);
-      const totalAbastecimento = fuelingsArray.reduce((sum, fuel) => sum + parseFloat(fuel.valorTotal || 0), 0);
+      const totalAbastecimento = fuelingsArray.reduce((sum, fuel) => sum + parseFloat(fuel.valorDiesel || 0), 0);
 
       // Formatar dados de consumo por veículo
       const consumoPorVeiculo = consumoArray.map(consumo => ({

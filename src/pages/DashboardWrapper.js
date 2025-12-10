@@ -61,7 +61,7 @@ export default function DashboardWrapper() {
       }
 
       const totalFretes = tripsArray.reduce((sum, trip) => sum + parseFloat(trip.valorFrete || 0), 0);
-      const totalAbastecimento = fuelingsArray.reduce((sum, fuel) => sum + parseFloat(fuel.valorTotal || 0), 0);
+      const totalAbastecimento = fuelingsArray.reduce((sum, fuel) => sum + parseFloat(fuel.valorDiesel || 0), 0);
 
       const consumoPorVeiculo = consumoArray.map(consumo => ({
         veiculo: `${consumo.placa}`,

@@ -64,7 +64,7 @@ const initializeData = () => {
 
   if (!localStorage.getItem(STORAGE_KEYS.FUELINGS)) {
     localStorage.setItem(STORAGE_KEYS.FUELINGS, JSON.stringify([
-      { id: 1, valorTotal: 850, litros: 300, veiculoId: 1, postoId: 1, quilometragem: 218310, data: '2025-10-01', tipoCombustivel: 'Diesel' },
+      { id: 1, valorDiesel: 850, litros: 300, veiculoId: 1, postoId: 1, quilometragem: 218310, data: '2025-10-01', tipoCombustivel: 'Diesel' },
     ]));
   }
 

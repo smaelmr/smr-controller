@@ -69,7 +69,7 @@ function Fuelings() {
 
 
   const [formData, setFormData] = useState({
-    valorTotal: '',
+    valorDiesel: '',
     litros: '',
     veiculoId: '',
     postoId: '',
@@ -170,7 +170,7 @@ function Fuelings() {
       setEditingId(fueling.id);
     } else {
       setFormData({
-        valorTotal: '',
+        valorDiesel: '',
         litros: '',
         veiculoId: '',
         postoId: '',
@@ -221,7 +221,7 @@ function Fuelings() {
           // Prepara os dados convertendo valores numéricos
           const dataToSubmit = {
             ...formData,
-            valorTotal: parseFloat(formData.valorTotal || 0),
+            valorDiesel: parseFloat(formData.valorDiesel || 0),
             litros: parseFloat(formData.litros || 0),
             km: parseInt(formData.km || 0, 10),
             dataAbastecimento: dataHoraCompleta, // Envia sem conversão UTC
@@ -453,7 +453,7 @@ function Fuelings() {
               <TableCell>Posto</TableCell>
               <TableCell>Tipo</TableCell>
               <TableCell>Litros</TableCell>
-              <TableCell>Valor Total</TableCell>
+              <TableCell>Total Diesel</TableCell>
               <TableCell>KM</TableCell>
               <TableCell>Cheio</TableCell>
               <TableCell align="right">Ações</TableCell>
@@ -468,7 +468,7 @@ function Fuelings() {
                 <TableCell>{getStationName(fueling.postoId)}</TableCell>
                 <TableCell>{fueling.tipoCombustivel}</TableCell>
                 <TableCell>{fueling.litros}L</TableCell>
-                <TableCell>R$ {parseFloat(fueling.valorTotal).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</TableCell>
+                <TableCell>R$ {parseFloat(fueling.valorDiesel).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</TableCell>
                 <TableCell>{fueling.km}</TableCell>
                 <TableCell>{fueling.cheio ? 'Sim' : 'Não'}</TableCell>
                 <TableCell align="right">
@@ -574,8 +574,8 @@ function Fuelings() {
             />
             <CurrencyInput
               label="Valor Total"
-              name="valorTotal"
-              value={formData.valorTotal}
+              name="valorDiesel"
+              value={formData.valorDiesel}
               onChange={handleChange}
               fullWidth
             />

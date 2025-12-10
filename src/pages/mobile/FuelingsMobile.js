@@ -73,7 +73,7 @@ export default function FuelingsMobile({
                 <LocalGasStation sx={{ color: 'error.main', mr: 2, fontSize: 32 }} />
                 <Box flexGrow={1}>
                   <Typography variant="h6" color="primary">
-                    R$ {parseFloat(fueling.valorTotal || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    R$ {parseFloat(fueling.valorDiesel || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </Typography>
                   <Typography variant="caption" color="textSecondary">
                     {getGasStationName(fueling.postoId)}
@@ -276,9 +276,9 @@ export default function FuelingsMobile({
             </FormControl>
 
             <CurrencyInput
-              label="Valor Total"
-              name="valorTotal"
-              value={formData.valorTotal}
+              label="Total Diesel"
+              name="valorDiesel"
+              value={formData.valorDiesel}
               onChange={handleChange}
               fullWidth
             />
