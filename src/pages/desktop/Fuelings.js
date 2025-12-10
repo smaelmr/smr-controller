@@ -501,144 +501,141 @@ function Fuelings() {
         <DialogTitle>{editingId ? 'Editar Abastecimento' : 'Novo Abastecimento'}</DialogTitle>
         <DialogContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 2 }}>
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  label="Data"
-                  name="dataAbastecimento"
-                  type="date"
-                  value={formData.dataAbastecimento}
-                  onChange={handleChange}
-                  InputLabelProps={{ shrink: true }}
-                  fullWidth
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  label="Hora"
-                  name="horaAbastecimento"
-                  type="time"
-                  value={formData.horaAbastecimento}
-                  onChange={handleChange}
-                  InputLabelProps={{ shrink: true }}
-                  fullWidth
-                />
-              </Grid>
-            </Grid>
-            <TextField
-              label="Número do Documento"
-              name="numeroDocumento"
-              value={formData.numeroDocumento}
-              onChange={handleChange}
-              fullWidth
-            />
-            <FormControl fullWidth>
-              <InputLabel>Veículo</InputLabel>
-              <Select
-                name="veiculoId"
-                value={formData.veiculoId}
+            {/* Linha 1: Data, Hora e Numero do Documento */}
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <TextField
+                label="Data"
+                name="dataAbastecimento"
+                type="date"
+                value={formData.dataAbastecimento}
                 onChange={handleChange}
-                label="Veículo"
-              >
-                {(Array.isArray(vehicles) ? vehicles : []).map((vehicle) => (
-                  <MenuItem key={vehicle.id} value={vehicle.id}>
-                     {vehicle.placa} - {vehicle.marca} {vehicle.modelo}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <FormControl fullWidth>
-              <InputLabel>Posto</InputLabel>
-              <Select
-                name="postoId"
-                value={formData.postoId}
+                InputLabelProps={{ shrink: true }}
+                fullWidth
+              />
+              <TextField
+                label="Hora"
+                name="horaAbastecimento"
+                type="time"
+                value={formData.horaAbastecimento}
                 onChange={handleChange}
-                label="Posto"
-              >
-                {(Array.isArray(gasStations) ? gasStations : []).map((station) => (
-                  <MenuItem key={station.id} value={station.id}>
-                    {station.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            
+                InputLabelProps={{ shrink: true }}
+                fullWidth
+              />
+              <TextField
+                label="Número do Documento"
+                name="numeroDocumento"
+                value={formData.numeroDocumento}
+                onChange={handleChange}
+                fullWidth
+              />
+            </Box>
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              {/* Linha 2: Veiculo */}
+              <FormControl fullWidth>
+                <InputLabel>Veículo</InputLabel>
+                <Select
+                  name="veiculoId"
+                  value={formData.veiculoId}
+                  onChange={handleChange}
+                  label="Veículo"
+                >
+                  {(Array.isArray(vehicles) ? vehicles : []).map((vehicle) => (
+                    <MenuItem key={vehicle.id} value={vehicle.id}>
+                      {vehicle.placa} - {vehicle.marca} {vehicle.modelo}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              {/* Linha 3: Posto */}
+              <FormControl fullWidth>
+                <InputLabel>Posto</InputLabel>
+                <Select
+                  name="postoId"
+                  value={formData.postoId}
+                  onChange={handleChange}
+                  label="Posto"
+                >
+                  {(Array.isArray(gasStations) ? gasStations : []).map((station) => (
+                    <MenuItem key={station.id} value={station.id}>
+                      {station.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
             {/* Diesel */}
-            <Typography variant="subtitle2" sx={{ mt: 1, mb: 1 }}>Diesel</Typography>
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={4}>
-                <TextField
-                  label="Litros Diesel"
-                  name="litros"
-                  type="number"
-                  value={formData.litros}
-                  onChange={handleChange}
-                  fullWidth
-                  inputProps={{ step: '0.01' }}
-                />
-              </Grid>
-              <Grid item xs={12} sm={4}>
-                <CurrencyInput
-                  label="Valor Total Diesel"
-                  name="valorDiesel"
-                  value={formData.valorDiesel}
-                  onChange={handleChange}
-                  fullWidth
-                />
-              </Grid>
-              <Grid item xs={12} sm={4}>
-                <TextField
-                  label="Valor por Litro"
-                  value={
-                    formData.litros && formData.valorDiesel
-                      ? (parseFloat(formData.valorDiesel) / parseFloat(formData.litros)).toFixed(3)
-                      : '0.000'
-                  }
-                  fullWidth
-                  disabled
-                  InputProps={{ readOnly: true }}
-                />
-              </Grid>
-            </Grid>
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <TextField
+                label="Litros Diesel"
+                name="litros"
+                type="number"
+                value={formData.litros}
+                onChange={handleChange}
+                fullWidth
+                inputProps={{ step: '0.01' }}
+              />
+              <CurrencyInput
+                label="Valor Total Diesel"
+                name="valorDiesel"
+                value={formData.valorDiesel}
+                onChange={handleChange}
+                fullWidth
+              />
+              <TextField
+                label="Valor por Litro"
+                value={
+                  formData.litros && formData.valorDiesel
+                    ? (parseFloat(formData.valorDiesel) / parseFloat(formData.litros)).toFixed(3)
+                    : '0.000'
+                }
+                disabled
+                fullWidth
+                InputProps={{ readOnly: true }}
+              />
+            </Box>
 
             {/* Arla */}
-            <Typography variant="subtitle2" sx={{ mt: 2, mb: 1 }}>Arla</Typography>
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={4}>
-                <TextField
-                  label="Litros Arla"
-                  name="qtdArla"
-                  type="number"
-                  value={formData.qtdArla}
-                  onChange={handleChange}
-                  fullWidth
-                  inputProps={{ step: '0.01' }}
-                />
-              </Grid>
-              <Grid item xs={12} sm={4}>
-                <CurrencyInput
-                  label="Valor Total Arla"
-                  name="valorArla"
-                  value={formData.valorArla}
-                  onChange={handleChange}
-                  fullWidth
-                />
-              </Grid>
-              <Grid item xs={12} sm={4}>
-                <TextField
-                  label="Valor por Litro"
-                  value={
-                    formData.qtdArla && formData.valorArla
-                      ? (parseFloat(formData.valorArla) / parseFloat(formData.qtdArla)).toFixed(3)
-                      : '0.000'
-                  }
-                  fullWidth
-                  disabled
-                  InputProps={{ readOnly: true }}
-                />
-              </Grid>
-            </Grid>
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <TextField
+                label="Litros Arla"
+                name="qtdArla"
+                type="number"
+                value={formData.qtdArla}
+                onChange={handleChange}
+                fullWidth
+                inputProps={{ step: '0.01' }}
+              />
+              <CurrencyInput
+                label="Valor Total Arla"
+                name="valorArla"
+                value={formData.valorArla}
+                onChange={handleChange}
+                fullWidth
+              />
+              <TextField
+                label="Valor por Litro"
+                value={
+                  formData.qtdArla && formData.valorArla
+                    ? (parseFloat(formData.valorArla) / parseFloat(formData.qtdArla)).toFixed(3)
+                    : '0.000'
+                }
+                fullWidth
+                disabled
+                InputProps={{ readOnly: true }}
+              />
+            </Box>
 
+            {!editingId && (
+              <CurrencyInput
+                label="Valor Diversos"
+                name="valorDiversos"
+                value={formData.valorDiversos}
+                onChange={handleChange}
+                fullWidth
+              />
+            )}
             <TextField
               label="Quilometragem"
               name="km"
