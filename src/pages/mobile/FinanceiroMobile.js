@@ -179,7 +179,7 @@ export default function FinanceiroMobile({
               >
                 <MenuItem value="">Todos</MenuItem>
                 {allFornecedores.map((fornecedor) => (
-                  <MenuItem key={fornecedor.uniqueId} value={fornecedor.uniqueId}>
+                  <MenuItem key={fornecedor.pessoaId} value={fornecedor.pessoaId}>
                     {fornecedor.name}
                   </MenuItem>
                 ))}
@@ -265,7 +265,7 @@ export default function FinanceiroMobile({
                   <em>Selecione...</em>
                 </MenuItem>
                 {allFornecedores.map((pessoa) => (
-                  <MenuItem key={pessoa.uniqueId} value={pessoa.uniqueId}>
+                  <MenuItem key={pessoa.pessoaId} value={pessoa.pessoaId}>
                     {pessoa.name}
                   </MenuItem>
                 ))}

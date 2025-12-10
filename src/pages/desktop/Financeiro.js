@@ -394,10 +394,10 @@ export default function ContasPagar() {
   };
 
   const allFornecedores = isPagar ? [
-    ...suppliers.map(s => ({ ...s, uniqueId: s.pessoaId })),
-    ...gasStations.map(g => ({ ...g, uniqueId: g.pessoaId }))
+    ...suppliers.map(s => ({ ...s, pessoaId: s.pessoaId })),
+    ...gasStations.map(g => ({ ...g, pessoaId: g.pessoaId }))
   ] : [
-    ...clients.map(c => ({ ...c, uniqueId: c.pessoaId }))
+    ...clients.map(c => ({ ...c, pessoaId: c.pessoaId }))
   ];
 
   return (
@@ -451,7 +451,7 @@ export default function ContasPagar() {
               >
                 <MenuItem value="">Todos</MenuItem>
                 {allFornecedores.map((fornecedor) => (
-                  <MenuItem key={fornecedor.uniqueId} value={fornecedor.uniqueId}>
+                  <MenuItem key={fornecedor.pessoaId} value={fornecedor.pessoaId}>
                     {fornecedor.name}
                   </MenuItem>
                 ))}
@@ -607,7 +607,7 @@ export default function ContasPagar() {
                 label={isPagar ? 'Fornecedor' : 'Cliente'}
               >
                 {allFornecedores.map((pessoa) => (
-                  <MenuItem key={pessoa.uniqueId} value={pessoa.uniqueId}>
+                  <MenuItem key={pessoa.pessoaId} value={pessoa.pessoaId}>
                     {pessoa.name}
                   </MenuItem>
                 ))}

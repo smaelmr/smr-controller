@@ -386,7 +386,7 @@ export default function FinanceiroWrapper() {
 
   const getPessoaName = (id) => {
     const allFornecedores = [...suppliers, ...gasStations, ...clients];
-    const fornecedor = allFornecedores.find(f => f.uniqueId === id);
+    const fornecedor = allFornecedores.find(f => f.pessoaId === id);
     return fornecedor ? fornecedor.name : '-';
   };
 
