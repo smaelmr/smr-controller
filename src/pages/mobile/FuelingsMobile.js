@@ -104,12 +104,6 @@ export default function FuelingsMobile({
                   </Typography>
                 </Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Typography variant="caption" color="textSecondary">Combustível:</Typography>
-                  <Typography variant="caption" sx={{ fontWeight: 'bold' }}>
-                    {fueling.tipoCombustivel}
-                  </Typography>
-                </Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                   <Typography variant="caption" color="textSecondary">Data:</Typography>
                   <Typography variant="caption" sx={{ fontWeight: 'bold' }}>
                     {fueling.dataAbastecimento ? new Date(fueling.dataAbastecimento).toLocaleDateString('pt-BR') : '-'}
@@ -275,21 +269,67 @@ export default function FuelingsMobile({
               </Select>
             </FormControl>
 
-            <CurrencyInput
-              label="Total Diesel"
-              name="valorDiesel"
-              value={formData.valorDiesel}
-              onChange={handleChange}
-              fullWidth
-            />
+            <Typography variant="subtitle2" sx={{ mt: 1, mb: 1, fontWeight: 'bold' }}>Diesel</Typography>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <TextField
+                label="Litros"
+                name="litros"
+                type="number"
+                value={formData.litros}
+                onChange={handleChange}
+                sx={{ flex: 1 }}
+                inputProps={{ step: '0.01' }}
+              />
+              <CurrencyInput
+                label="Valor Total"
+                name="valorDiesel"
+                value={formData.valorDiesel}
+                onChange={handleChange}
+                sx={{ flex: 1 }}
+              />
+              <TextField
+                label="R$/L"
+                value={
+                  formData.litros && formData.valorDiesel
+                    ? (parseFloat(formData.valorDiesel) / parseFloat(formData.litros)).toFixed(3)
+                    : '0.000'
+                }
+                sx={{ flex: 1 }}
+                disabled
+                InputProps={{ readOnly: true }}
+              />
+            </Box>
 
-            <CurrencyInput
-              label="Valor Arla"
-              name="valorArla"
-              value={formData.valorArla}
-              onChange={handleChange}
-              fullWidth
-            />
+            <Typography variant="subtitle2" sx={{ mt: 2, mb: 1, fontWeight: 'bold' }}>Arla</Typography>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <TextField
+                label="Litros"
+                name="qtdArla"
+                type="number"
+                value={formData.qtdArla}
+                onChange={handleChange}
+                sx={{ flex: 1 }}
+                inputProps={{ step: '0.01' }}
+              />
+              <CurrencyInput
+                label="Valor Total"
+                name="valorArla"
+                value={formData.valorArla}
+                onChange={handleChange}
+                sx={{ flex: 1 }}
+              />
+              <TextField
+                label="R$/L"
+                value={
+                  formData.qtdArla && formData.valorArla
+                    ? (parseFloat(formData.valorArla) / parseFloat(formData.qtdArla)).toFixed(3)
+                    : '0.000'
+                }
+                sx={{ flex: 1 }}
+                disabled
+                InputProps={{ readOnly: true }}
+              />
+            </Box>
 
             {!editingId && (
               <CurrencyInput
@@ -340,20 +380,6 @@ export default function FuelingsMobile({
               InputLabelProps={{ shrink: true }}
               fullWidth
             />
-
-            <FormControl fullWidth>
-              <InputLabel>Tipo de Combustível</InputLabel>
-              <Select
-                name="tipoCombustivel"
-                value={formData.tipoCombustivel}
-                onChange={handleChange}
-                label="Tipo de Combustível"
-              >
-                <MenuItem value="Diesel_S500">Diesel S500</MenuItem>
-                <MenuItem value="Diesel_S10">Diesel S10</MenuItem>
-                <MenuItem value="Arla">Arla</MenuItem>
-              </Select>
-            </FormControl>
 
             <TextField
               label="Número do Documento"

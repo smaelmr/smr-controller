@@ -76,10 +76,10 @@ function Fuelings() {
     km: '',
     dataAbastecimento: '',
     horaAbastecimento: '',
-    tipoCombustivel: 'Diesel',
     numeroDocumento: '',
     cheio: false,
     valorArla: '',
+    qtdArla: '',
     valorDiversos: '',
   });
 
@@ -177,10 +177,10 @@ function Fuelings() {
         km: '',
         dataAbastecimento: '',
         horaAbastecimento: '',
-        tipoCombustivel: 'Diesel',
         numeroDocumento: '',
         cheio: false,
         valorArla: '',
+        qtdArla: '',
         valorDiversos: '',
       });
       setEditingId(null);
@@ -208,6 +208,25 @@ function Fuelings() {
 
   const handleSubmit = async () => {
       try {
+        // Validações
+        if (!formData.veiculoId) {
+          showNotification('Por favor, selecione um veículo', 'error');
+          return;
+        }
+
+        if (!formData.postoId) {
+          showNotification('Por favor, selecione um posto', 'error');
+          return;
+        }
+
+        const valorDiesel = parseFloat(formData.valorDiesel || 0);
+        const valorArla = parseFloat(formData.valorArla || 0);
+
+        if (valorDiesel <= 0 && valorArla <= 0) {
+          showNotification('Por favor, informe o valor do Diesel ou o valor da Arla', 'error');
+          return;
+        }
+
         await withLoading(async () => {
           // Concatena data e hora no formato local (sem conversão de timezone)
           let dataHoraCompleta = formData.dataAbastecimento;
@@ -227,6 +246,7 @@ function Fuelings() {
             dataAbastecimento: dataHoraCompleta, // Envia sem conversão UTC
             cheio: Boolean(formData.cheio),
             valorArla: parseFloat(formData.valorArla || 0),
+            qtdArla: parseFloat(formData.qtdArla || 0),
             valorDiversos: parseFloat(formData.valorDiversos || 0),
           };
 
@@ -451,7 +471,6 @@ function Fuelings() {
               <TableCell>Nº Documento</TableCell>
               <TableCell>Veículo</TableCell>
               <TableCell>Posto</TableCell>
-              <TableCell>Tipo</TableCell>
               <TableCell>Litros</TableCell>
               <TableCell>Total Diesel</TableCell>
               <TableCell>KM</TableCell>
@@ -466,7 +485,6 @@ function Fuelings() {
                 <TableCell>{fueling.numeroDocumento || '-'}</TableCell>
                 <TableCell>{getVehicleName(fueling.veiculoId)}</TableCell>
                 <TableCell>{getStationName(fueling.postoId)}</TableCell>
-                <TableCell>{fueling.tipoCombustivel}</TableCell>
                 <TableCell>{fueling.litros}L</TableCell>
                 <TableCell>R$ {parseFloat(fueling.valorDiesel).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</TableCell>
                 <TableCell>{fueling.km}</TableCell>
@@ -551,41 +569,83 @@ function Fuelings() {
                 ))}
               </Select>
             </FormControl>
-            <FormControl fullWidth>
-              <InputLabel>Tipo de Combustível</InputLabel>
-              <Select
-                name="tipoCombustivel"
-                value={formData.tipoCombustivel}
-                onChange={handleChange}
-                label="Tipo de Combustível"
-              >
-                <MenuItem value="Diesel_S500">Diesel S500</MenuItem>
-                <MenuItem value="Diesel_S10">Diesel S10</MenuItem>
-                <MenuItem value="Arla">Arla</MenuItem>
-              </Select>
-            </FormControl>
-            <TextField
-              label="Quantidade de Litros"
-              name="litros"
-              type="number"
-              value={formData.litros}
-              onChange={handleChange}
-              fullWidth
-            />
-            <CurrencyInput
-              label="Valor Total"
-              name="valorDiesel"
-              value={formData.valorDiesel}
-              onChange={handleChange}
-              fullWidth
-            />
-            <CurrencyInput
-              label="Valor Arla"
-              name="valorArla"
-              value={formData.valorArla}
-              onChange={handleChange}
-              fullWidth
-            />
+            
+            {/* Diesel */}
+            <Typography variant="subtitle2" sx={{ mt: 1, mb: 1 }}>Diesel</Typography>
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  label="Litros Diesel"
+                  name="litros"
+                  type="number"
+                  value={formData.litros}
+                  onChange={handleChange}
+                  fullWidth
+                  inputProps={{ step: '0.01' }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <CurrencyInput
+                  label="Valor Total Diesel"
+                  name="valorDiesel"
+                  value={formData.valorDiesel}
+                  onChange={handleChange}
+                  fullWidth
+                />
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  label="Valor por Litro"
+                  value={
+                    formData.litros && formData.valorDiesel
+                      ? (parseFloat(formData.valorDiesel) / parseFloat(formData.litros)).toFixed(3)
+                      : '0.000'
+                  }
+                  fullWidth
+                  disabled
+                  InputProps={{ readOnly: true }}
+                />
+              </Grid>
+            </Grid>
+
+            {/* Arla */}
+            <Typography variant="subtitle2" sx={{ mt: 2, mb: 1 }}>Arla</Typography>
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  label="Litros Arla"
+                  name="qtdArla"
+                  type="number"
+                  value={formData.qtdArla}
+                  onChange={handleChange}
+                  fullWidth
+                  inputProps={{ step: '0.01' }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <CurrencyInput
+                  label="Valor Total Arla"
+                  name="valorArla"
+                  value={formData.valorArla}
+                  onChange={handleChange}
+                  fullWidth
+                />
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  label="Valor por Litro"
+                  value={
+                    formData.qtdArla && formData.valorArla
+                      ? (parseFloat(formData.valorArla) / parseFloat(formData.qtdArla)).toFixed(3)
+                      : '0.000'
+                  }
+                  fullWidth
+                  disabled
+                  InputProps={{ readOnly: true }}
+                />
+              </Grid>
+            </Grid>
+
             {!editingId && (
               <CurrencyInput
                 label="Valor Diversos"
