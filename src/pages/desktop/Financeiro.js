@@ -522,7 +522,7 @@ export default function ContasPagar() {
               <TableCell>Data Competencia</TableCell>
               <TableCell>Data Vencimento</TableCell>
               <TableCell>Data Pagamento</TableCell>
-              <TableCell>Origem</TableCell>
+              <TableCell>Valor Pago</TableCell>
               <TableCell align="right">Ações</TableCell>
             </TableRow>
           </TableHead>
@@ -543,7 +543,9 @@ export default function ContasPagar() {
                 <TableCell>{formatDateBR(item.dataCompetencia)}</TableCell>
                 <TableCell>{formatDateBR(item.dataVencimento)}</TableCell>
                 <TableCell>{formatDateBR(item.dataRealizacao)}</TableCell>
-                <TableCell>{item.origem}</TableCell>
+                <TableCell>
+                  {parseFloat(item.valorPago).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </TableCell>
                 <TableCell align="right">
                   {!item.dataRealizacao && (
                     <IconButton 
