@@ -44,29 +44,21 @@ export default function FinanceiroWrapper() {
     lancarDiferenca: false,
   });
 
+  const now = new Date();
   const [filters, setFilters] = useState({
-    dataInicial: '',
-    dataFinal: '',
-    fornecedorId: '',
+    mes: now.getMonth() + 1,
+    ano: now.getFullYear(),
     categoriaId: '',
     status: '',
   });
 
   useEffect(() => {
-    loadData();
+    loadData(filters.mes, filters.ano);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tipo]);
+  }, [tipo, filters.mes, filters.ano]);
 
-  useEffect(() => {
-    applyFilters();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [finance, filters]);
-
-  const loadData = async () => {
+  const loadData = async (month, year) => {
     try {
-      const now = new Date();
-      const currentMonth = now.getMonth() + 1;
-      const currentYear = now.getFullYear();
       
       const categoriasData = await categoryService.getAll();
       const allCategorias = Array.isArray(categoriasData) ? categoriasData : categoriasData.data || [];
@@ -81,7 +73,7 @@ export default function FinanceiroWrapper() {
       
       if (isPagar) {
         const [financeData, suppliersData, gasStationsData] = await Promise.all([
-          financeService.getPayments(currentMonth, currentYear),
+          financeService.getPayments(month, year),
           supplierService.getAll(),
           gasStationService.getAll(),
         ]);
@@ -92,7 +84,7 @@ export default function FinanceiroWrapper() {
         setClients([]);
       } else {
         const [financeData, clientsData] = await Promise.all([
-          financeService.getReceipts(currentMonth, currentYear),
+          financeService.getReceipts(month, year),
           clientService.getAll(),
         ]);
 
@@ -108,24 +100,8 @@ export default function FinanceiroWrapper() {
     }
   };
 
-  const applyFilters = () => {
+  const applyLocalFilters = () => {
     let filtered = [...finance];
-
-    if (filters.dataInicial) {
-      filtered = filtered.filter(item => 
-        new Date(item.dataVencimento) >= new Date(filters.dataInicial)
-      );
-    }
-
-    if (filters.dataFinal) {
-      filtered = filtered.filter(item => 
-        new Date(item.dataVencimento) <= new Date(filters.dataFinal)
-      );
-    }
-
-    if (filters.fornecedorId) {
-      filtered = filtered.filter(item => item.pessoaId === filters.fornecedorId);
-    }
 
     if (filters.categoriaId) {
       filtered = filtered.filter(item => item.categoriaId === filters.categoriaId);
@@ -153,16 +129,21 @@ export default function FinanceiroWrapper() {
     setFilteredFinance(filtered);
   };
 
+  useEffect(() => {
+    applyLocalFilters(finance);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters.categoriaId, filters.status, finance]);
+
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
     setFilters(prev => ({ ...prev, [name]: value }));
   };
 
   const clearFilters = () => {
+    const now = new Date();
     setFilters({
-      dataInicial: '',
-      dataFinal: '',
-      fornecedorId: '',
+      mes: now.getMonth() + 1,
+      ano: now.getFullYear(),
       categoriaId: '',
       status: '',
     });
@@ -390,6 +371,38 @@ export default function FinanceiroWrapper() {
     return fornecedor ? fornecedor.name : '-';
   };
 
+  const calculateTotals = () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    let totalEmAberto = 0;
+    let totalEmAtraso = 0;
+    let totalPago = 0;
+
+    filteredFinance.forEach(item => {
+      const valor = parseFloat(item.valorParcela || 0);
+      const vencimento = new Date(item.dataVencimento);
+      vencimento.setHours(0, 0, 0, 0);
+
+      if (item.dataRealizacao) {
+        // Pago
+        totalPago += valor;
+      } else if (vencimento < today) {
+        // Em Atraso
+        totalEmAtraso += valor;
+      } else {
+        // Em Aberto
+        totalEmAberto += valor;
+      }
+    });
+
+    return {
+      totalEmAberto,
+      totalEmAtraso,
+      totalPago
+    };
+  };
+
   const allFornecedores = [...suppliers, ...gasStations, ...clients];
 
   if (isMobile) {
@@ -424,6 +437,7 @@ export default function FinanceiroWrapper() {
         setSelectedPaymentMethod={setSelectedPaymentMethod}
         getCategoriaName={getCategoriaName}
         getPessoaName={getPessoaName}
+        calculateTotals={calculateTotals}
       />
     );
   }

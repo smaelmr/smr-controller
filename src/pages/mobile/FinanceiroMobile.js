@@ -70,6 +70,48 @@ export default function FinanceiroMobile({
         </Box>
       </Box>
 
+      {/* Totalizações */}
+      <Box sx={{ px: 2, mb: 2 }}>
+        <Grid container spacing={2}>
+          <Grid item xs={12}>
+            <Card sx={{ bgcolor: '#e3f2fd' }}>
+              <CardContent>
+                <Typography variant="subtitle2" color="textSecondary">
+                  Total Em Aberto
+                </Typography>
+                <Typography variant="h5" color="primary">
+                  R$ {calculateTotals().totalEmAberto.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12}>
+            <Card sx={{ bgcolor: '#fff3e0' }}>
+              <CardContent>
+                <Typography variant="subtitle2" color="textSecondary">
+                  Total Em Atraso
+                </Typography>
+                <Typography variant="h5" color="error">
+                  R$ {calculateTotals().totalEmAtraso.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12}>
+            <Card sx={{ bgcolor: '#e8f5e9' }}>
+              <CardContent>
+                <Typography variant="subtitle2" color="textSecondary">
+                  Total Pago
+                </Typography>
+                <Typography variant="h5" sx={{ color: 'success.main' }}>
+                  R$ {calculateTotals().totalPago.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+      </Box>
+
       {/* Lista de Cards */}
       <Box sx={{ px: 2 }}>
         {filteredFinance.map((item) => (
@@ -149,39 +191,31 @@ export default function FinanceiroMobile({
         <DialogTitle>Filtros</DialogTitle>
         <DialogContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
-            <TextField
-              label="Data Inicial"
-              name="dataInicial"
-              type="date"
-              value={filters.dataInicial}
-              onChange={handleFilterChange}
-              InputLabelProps={{ shrink: true }}
-              inputProps={{ style: { minHeight: '44px' } }}
-              fullWidth
-            />
-            <TextField
-              label="Data Final"
-              name="dataFinal"
-              type="date"
-              value={filters.dataFinal}
-              onChange={handleFilterChange}
-              InputLabelProps={{ shrink: true }}
-              inputProps={{ style: { minHeight: '44px' } }}
-              fullWidth
-            />
             <FormControl fullWidth>
-              <InputLabel>{isPagar ? 'Fornecedor' : 'Cliente'}</InputLabel>
+              <InputLabel>Mês</InputLabel>
               <Select
-                name="fornecedorId"
-                value={filters.fornecedorId}
+                name="mes"
+                value={filters.mes}
                 onChange={handleFilterChange}
-                label={isPagar ? 'Fornecedor' : 'Cliente'}
+                label="Mês"
               >
-                <MenuItem value="">Todos</MenuItem>
-                {allFornecedores.map((fornecedor) => (
-                  <MenuItem key={fornecedor.pessoaId} value={fornecedor.pessoaId}>
-                    {fornecedor.name}
+                {[...Array(12)].map((_, i) => (
+                  <MenuItem key={i + 1} value={i + 1}>
+                    {new Date(2000, i).toLocaleString('pt-BR', { month: 'long' })}
                   </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <FormControl fullWidth>
+              <InputLabel>Ano</InputLabel>
+              <Select
+                name="ano"
+                value={filters.ano}
+                onChange={handleFilterChange}
+                label="Ano"
+              >
+                {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - 2 + i).map(year => (
+                  <MenuItem key={year} value={year}>{year}</MenuItem>
                 ))}
               </Select>
             </FormControl>

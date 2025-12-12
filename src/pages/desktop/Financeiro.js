@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import {
   Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Paper, Table, TableBody,
-  TableCell, TableContainer, TableHead, TableRow, TextField, Typography, Select, MenuItem, FormControl, InputLabel, Chip, Grid
+  TableCell, TableContainer, TableHead, TableRow, TextField, Typography, Select, MenuItem, FormControl, InputLabel, Chip, Grid, Card, CardContent
 } from '@mui/material';
 import { Add, Edit, Delete, FilterList, Clear, Payment } from '@mui/icons-material';
 import { financeService, supplierService, gasStationService, clientService, categoryService, paymentMethodService } from '../../services/services';
@@ -393,6 +393,37 @@ export default function ContasPagar() {
     return categoria ? categoria.name : '-';
   };
 
+  const calculateTotals = () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    let totalEmAberto = 0;
+    let totalEmAtraso = 0;
+    let totalPago = 0;
+
+    filteredFinance.forEach(item => {
+      const valor = parseFloat(item.valorParcela || 0);
+      const vencimento = new Date(item.dataVencimento);
+      vencimento.setHours(0, 0, 0, 0);
+
+      if (item.dataRealizacao) {
+        totalPago += valor;
+      } else if (vencimento < today) {
+        totalEmAtraso += valor;
+      } else {
+        totalEmAberto += valor;
+      }
+    });
+
+    return {
+      totalEmAberto,
+      totalEmAtraso,
+      totalPago
+    };
+  };
+
+  const totals = calculateTotals();
+
   const allFornecedores = isPagar ? [
     ...suppliers.map(s => ({ ...s, pessoaId: s.pessoaId })),
     ...gasStations.map(g => ({ ...g, pessoaId: g.pessoaId }))
@@ -416,44 +447,34 @@ export default function ContasPagar() {
           <Typography variant="h6">Filtros</Typography>
         </Box>
         <Grid container spacing={2}>
-          <Grid item xs={12} sm={6} md={2.5}>
-            <TextField
-              label="Data Inicial"
-              name="dataInicial"
-              type="date"
-              value={filters.dataInicial}
-              onChange={handleFilterChange}
-              InputLabelProps={{ shrink: true }}
-              fullWidth
-              size="small"
-            />
-          </Grid>
-          <Grid item xs={12} sm={6} md={2.5}>
-            <TextField
-              label="Data Final"
-              name="dataFinal"
-              type="date"
-              value={filters.dataFinal}
-              onChange={handleFilterChange}
-              InputLabelProps={{ shrink: true }}
-              fullWidth
-              size="small"
-            />
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <FormControl fullWidth size="small" sx={{ minWidth: 200 }}>
-              <InputLabel>{isPagar ? 'Fornecedor' : 'Cliente'}</InputLabel>
+          <Grid item xs={12} sm={6} md={2}>
+            <FormControl fullWidth size="small" sx={{ minWidth: 120 }}>
+              <InputLabel>Mês</InputLabel>
               <Select
-                name="fornecedorId"
-                value={filters.fornecedorId}
+                name="mes"
+                value={filters.mes}
                 onChange={handleFilterChange}
-                label={isPagar ? 'Fornecedor' : 'Cliente'}
+                label="Mês"
               >
-                <MenuItem value="">Todos</MenuItem>
-                {allFornecedores.map((fornecedor) => (
-                  <MenuItem key={fornecedor.pessoaId} value={fornecedor.pessoaId}>
-                    {fornecedor.name}
+                {[...Array(12)].map((_, i) => (
+                  <MenuItem key={i + 1} value={i + 1}>
+                    {new Date(2000, i).toLocaleString('pt-BR', { month: 'long' })}
                   </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} sm={6} md={2}>
+            <FormControl fullWidth size="small" sx={{ minWidth: 120 }}>
+              <InputLabel>Ano</InputLabel>
+              <Select
+                name="ano"
+                value={filters.ano}
+                onChange={handleFilterChange}
+                label="Ano"
+              >
+                {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - 2 + i).map(year => (
+                  <MenuItem key={year} value={year}>{year}</MenuItem>
                 ))}
               </Select>
             </FormControl>
@@ -510,6 +531,46 @@ export default function ContasPagar() {
           </Typography>
         </Box>
       </Paper>
+
+      {/* Totalização */}
+      <Grid container spacing={2} sx={{ mb: 3 }}>
+        <Grid item xs={12} sm={4}>
+          <Card sx={{ bgcolor: '#e3f2fd' }}>
+            <CardContent>
+              <Typography variant="subtitle2" color="textSecondary" gutterBottom>
+                Total Em Aberto
+              </Typography>
+              <Typography variant="h5" color="primary">
+                R$ {totals.totalEmAberto.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} sm={4}>
+          <Card sx={{ bgcolor: '#fff3e0' }}>
+            <CardContent>
+              <Typography variant="subtitle2" color="textSecondary" gutterBottom>
+                Total Em Atraso
+              </Typography>
+              <Typography variant="h5" color="error">
+                R$ {totals.totalEmAtraso.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} sm={4}>
+          <Card sx={{ bgcolor: '#e8f5e9' }}>
+            <CardContent>
+              <Typography variant="subtitle2" color="textSecondary" gutterBottom>
+                Total {isPagar ? 'Pago' : 'Recebido'}
+              </Typography>
+              <Typography variant="h5" color="success.main">
+                R$ {totals.totalPago.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
 
       <TableContainer component={Paper}>
         <Table>
