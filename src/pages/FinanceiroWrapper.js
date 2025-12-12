@@ -44,18 +44,19 @@ export default function FinanceiroWrapper() {
     lancarDiferenca: false,
   });
 
+  // Filters: month, year, categoria, status
   const now = new Date();
-  const [filters, setFilters] = useState({
-    mes: now.getMonth() + 1,
-    ano: now.getFullYear(),
-    categoriaId: '',
-    status: '',
-  });
+  const defaultMonth = now.getMonth() + 1;
+  const defaultYear = now.getFullYear();
+  const [filterMonth, setFilterMonth] = useState(defaultMonth);
+  const [filterYear, setFilterYear] = useState(defaultYear);
+  const [filterCategoria, setFilterCategoria] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
 
   useEffect(() => {
-    loadData(filters.mes, filters.ano);
+    loadData(filterMonth, filterYear);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tipo, filters.mes, filters.ano]);
+  }, [tipo, filterMonth, filterYear]);
 
   const loadData = async (month, year) => {
     try {
@@ -103,11 +104,11 @@ export default function FinanceiroWrapper() {
   const applyLocalFilters = () => {
     let filtered = [...finance];
 
-    if (filters.categoriaId) {
-      filtered = filtered.filter(item => item.categoriaId === filters.categoriaId);
+    if (filterCategoria) {
+      filtered = filtered.filter(item => item.categoriaId === filterCategoria);
     }
 
-    if (filters.status) {
+    if (filterStatus) {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
@@ -115,11 +116,11 @@ export default function FinanceiroWrapper() {
         const vencimento = new Date(item.dataVencimento);
         vencimento.setHours(0, 0, 0, 0);
 
-        if (filters.status === 'EM_ABERTO') {
+        if (filterStatus === 'EM_ABERTO') {
           return !item.dataRealizacao && vencimento >= today;
-        } else if (filters.status === 'EM_ATRASO') {
+        } else if (filterStatus === 'EM_ATRASO') {
           return !item.dataRealizacao && vencimento < today;
-        } else if (filters.status === 'PAGO' || filters.status === 'RECEBIDO') {
+        } else if (filterStatus === 'PAGO' || filterStatus === 'RECEBIDO') {
           return !!item.dataRealizacao;
         }
         return true;
@@ -132,21 +133,22 @@ export default function FinanceiroWrapper() {
   useEffect(() => {
     applyLocalFilters(finance);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters.categoriaId, filters.status, finance]);
+  }, [filterCategoria, filterStatus, finance]);
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
-    setFilters(prev => ({ ...prev, [name]: value }));
+    if (name === 'mes') setFilterMonth(value);
+    else if (name === 'ano') setFilterYear(value);
+    else if (name === 'categoriaId') setFilterCategoria(value);
+    else if (name === 'status') setFilterStatus(value);
   };
 
   const clearFilters = () => {
     const now = new Date();
-    setFilters({
-      mes: now.getMonth() + 1,
-      ano: now.getFullYear(),
-      categoriaId: '',
-      status: '',
-    });
+    setFilterMonth(now.getMonth() + 1);
+    setFilterYear(now.getFullYear());
+    setFilterCategoria('');
+    setFilterStatus('');
   };
 
   const handleOpen = (finance = null) => {
@@ -375,7 +377,7 @@ export default function FinanceiroWrapper() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    let totalEmAberto = 0;
+    let totalAVencer = 0;
     let totalEmAtraso = 0;
     let totalPago = 0;
 
@@ -391,19 +393,26 @@ export default function FinanceiroWrapper() {
         // Em Atraso
         totalEmAtraso += valor;
       } else {
-        // Em Aberto
-        totalEmAberto += valor;
+        // A Vencer
+        totalAVencer += valor;
       }
     });
 
     return {
-      totalEmAberto,
+      totalAVencer,
       totalEmAtraso,
       totalPago
     };
   };
 
   const allFornecedores = [...suppliers, ...gasStations, ...clients];
+
+  const filters = {
+    mes: filterMonth,
+    ano: filterYear,
+    categoriaId: filterCategoria,
+    status: filterStatus
+  };
 
   if (isMobile) {
     return (
@@ -442,5 +451,38 @@ export default function FinanceiroWrapper() {
     );
   }
 
-  return <ContasPagar />;
+  return (
+    <ContasPagar
+      isPagar={isPagar}
+      filteredFinance={filteredFinance}
+      categorias={categorias}
+      allFornecedores={allFornecedores}
+      paymentMethods={paymentMethods}
+      filters={filters}
+      formData={formData}
+      open={open}
+      paymentOpen={paymentOpen}
+      selectedFinance={selectedFinance}
+      paymentAmount={paymentAmount}
+      paymentDate={paymentDate}
+      selectedPaymentMethod={selectedPaymentMethod}
+      editingId={editingId}
+      handleFilterChange={handleFilterChange}
+      clearFilters={clearFilters}
+      handleOpen={handleOpen}
+      handleClose={handleClose}
+      handleChange={handleChange}
+      handleSubmit={handleSubmit}
+      handleDelete={handleDelete}
+      handlePaymentOpen={handlePaymentOpen}
+      handlePaymentClose={handlePaymentClose}
+      handlePaymentSubmit={handlePaymentSubmit}
+      setPaymentAmount={setPaymentAmount}
+      setPaymentDate={setPaymentDate}
+      setSelectedPaymentMethod={setSelectedPaymentMethod}
+      getCategoriaName={getCategoriaName}
+      getPessoaName={getPessoaName}
+      calculateTotals={calculateTotals}
+    />
+  );
 }

@@ -1,7 +1,7 @@
 import React from 'react';
 import {
   Box, Card, CardContent, IconButton, Typography, Chip, Fab, Dialog, DialogActions, 
-  DialogContent, DialogTitle, TextField, Button, Select, MenuItem, FormControl, InputLabel
+  DialogContent, DialogTitle, TextField, Button, Select, MenuItem, FormControl, InputLabel, Grid
 } from '@mui/material';
 import { Add, Edit, Delete, Payment, FilterList } from '@mui/icons-material';
 import CurrencyInput from '../../components/common/CurrencyInput';
@@ -37,6 +37,7 @@ export default function FinanceiroMobile({
   setSelectedPaymentMethod,
   getCategoriaName,
   getPessoaName,
+  calculateTotals,
 }) {
   const [filterOpen, setFilterOpen] = React.useState(false);
 
@@ -74,19 +75,19 @@ export default function FinanceiroMobile({
       <Box sx={{ px: 2, mb: 2 }}>
         <Grid container spacing={2}>
           <Grid item xs={12}>
-            <Card sx={{ bgcolor: '#e3f2fd' }}>
+            <Card>
               <CardContent>
                 <Typography variant="subtitle2" color="textSecondary">
-                  Total Em Aberto
+                  Total A Vencer
                 </Typography>
                 <Typography variant="h5" color="primary">
-                  R$ {calculateTotals().totalEmAberto.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  R$ {calculateTotals().totalAVencer.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </Typography>
               </CardContent>
             </Card>
           </Grid>
           <Grid item xs={12}>
-            <Card sx={{ bgcolor: '#fff3e0' }}>
+            <Card>
               <CardContent>
                 <Typography variant="subtitle2" color="textSecondary">
                   Total Em Atraso
@@ -98,12 +99,12 @@ export default function FinanceiroMobile({
             </Card>
           </Grid>
           <Grid item xs={12}>
-            <Card sx={{ bgcolor: '#e8f5e9' }}>
+            <Card>
               <CardContent>
                 <Typography variant="subtitle2" color="textSecondary">
                   Total Pago
                 </Typography>
-                <Typography variant="h5" sx={{ color: 'success.main' }}>
+                <Typography variant="h5" color="success.main">
                   R$ {calculateTotals().totalPago.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </Typography>
               </CardContent>

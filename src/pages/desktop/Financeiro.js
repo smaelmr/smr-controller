@@ -1,435 +1,45 @@
-import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import React from 'react';
 import {
   Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Paper, Table, TableBody,
   TableCell, TableContainer, TableHead, TableRow, TextField, Typography, Select, MenuItem, FormControl, InputLabel, Chip, Grid, Card, CardContent
 } from '@mui/material';
 import { Add, Edit, Delete, FilterList, Clear, Payment } from '@mui/icons-material';
-import { financeService, supplierService, gasStationService, clientService, categoryService, paymentMethodService } from '../../services/services';
 import CurrencyInput from '../../components/common/CurrencyInput';
 import { formatToISO, formatDateBR } from '../../services/helpers/dateUtils';
 
-export default function ContasPagar() {
-  const { tipo } = useParams(); // 'pagar' ou 'receber'
-  const isPagar = tipo === 'pagar';
-  const [finance, setFinance] = useState([]);
-  const [filteredFinance, setFilteredFinance] = useState([]);
-  const [suppliers, setSuppliers] = useState([]);
-  const [gasStations, setGasStations] = useState([]);
-  const [clients, setClients] = useState([]);
-  const [categorias, setCategorias] = useState([]);
-  const [paymentMethods, setPaymentMethods] = useState([]);
-  const [open, setOpen] = useState(false);
-  const [paymentOpen, setPaymentOpen] = useState(false);
-  const [selectedFinance, setSelectedFinance] = useState(null);
-  const [paymentAmount, setPaymentAmount] = useState('');
-  const [paymentDate, setPaymentDate] = useState('');
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('');
-  const [editingId, setEditingId] = useState(null);
-  const [formData, setFormData] = useState({
-    categoriaId: 0,
-    pessoaId: 0,
-    valor: '',
-    dataCompetencia: '',
-    dataVencimento: '',
-    dataRealizacao: '',
-    numeroDocumento: '',
-    origem: 'Manual',
-    origemId: null,
-    observacao: '',
-    totalParcelas: 1,
-    valorParcela: '',
-    lancarDiferenca: false,
-  });
-
-  // Estados dos filtros
-  const [filters, setFilters] = useState({
-    dataInicial: '',
-    dataFinal: '',
-    fornecedorId: '',
-    categoriaId: '',
-    status: '',
-  });
-
-  useEffect(() => {
-    loadData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tipo]);
-
-  useEffect(() => {
-    applyFilters();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [finance, filters]);
-
-  const loadData = async () => {
-    try {
-      // Obter mês e ano atual
-      const now = new Date();
-      const currentMonth = now.getMonth() + 1; // getMonth() retorna 0-11
-      const currentYear = now.getFullYear();
-      
-      const categoriasData = await categoryService.getAll();
-      const allCategorias = Array.isArray(categoriasData) ? categoriasData : categoriasData.data || [];
-      
-      const paymentMethodsData = await paymentMethodService.getAll();
-      const allPaymentMethods = Array.isArray(paymentMethodsData) ? paymentMethodsData : paymentMethodsData.data || [];
-      setPaymentMethods(allPaymentMethods);
-      
-      // Filtrar categorias por tipo: D para pagar, R para receber
-      const categoriasFiltradas = allCategorias.filter(cat => 
-        cat.type === (isPagar ? 'D' : 'R')
-      );
-      
-      if (isPagar) {
-        // Contas a Pagar: carregar Fornecedores e Postos
-        const [financeData, suppliersData, gasStationsData] = await Promise.all([
-          financeService.getPayments(currentMonth, currentYear),
-          supplierService.getAll(),
-          gasStationService.getAll(),
-        ]);
-
-        console.log('Dados de fornecedores:', suppliersData);
-
-        console.log('Dados de postos:', gasStationsData);
-        console.log('Dados de contas a pagar:', financeData);
-
-        setFinance(financeData || []);
-        setSuppliers(Array.isArray(suppliersData) ? suppliersData : suppliersData.data || []);
-        setGasStations(Array.isArray(gasStationsData) ? gasStationsData : gasStationsData.data || []);
-        setClients([]);
-      } else {
-        // Contas a Receber: carregar Clientes
-        const [financeData, clientsData] = await Promise.all([
-          financeService.getReceipts(currentMonth, currentYear),
-          clientService.getAll(),
-        ]);
-
-        console.log('Dados de clientes:', clientsData);
-
-        setFinance(financeData || []);
-        setClients(Array.isArray(clientsData) ? clientsData : clientsData.data || []);
-        setSuppliers([]);
-        setGasStations([]);
-      }
-      setCategorias(categoriasFiltradas);
-    } catch (error) {
-      console.error('Erro ao carregar dados:', error);
-    }
-  };
-
-  const applyFilters = () => {
-    let filtered = [...finance];
-
-    if (filters.dataInicial) {
-      filtered = filtered.filter(item => 
-        item.dataVencimento >= filters.dataInicial
-      );
-    }
-
-    if (filters.dataFinal) {
-      filtered = filtered.filter(item => 
-        item.dataVencimento <= filters.dataFinal
-      );
-    }
-
-    if (filters.pessoaId) {
-      filtered = filtered.filter(item => 
-        item.pessoaId === filters.pessoaId
-      );
-    }
-
-    if (filters.categoria) {
-      filtered = filtered.filter(item => 
-        item.categoriaId === filters.categoria
-      );
-    }
-
-    if (filters.status) {
-      filtered = filtered.filter(item => 
-        item.status === filters.status
-      );
-    }
-
-    setFilteredFinance(filtered);
-  };
-
-  const handleFilterChange = (e) => {
-    setFilters({ ...filters, [e.target.name]: e.target.value });
-  };
-
-  const clearFilters = () => {
-    setFilters({
-      dataInicial: '',
-      dataFinal: '',
-      fornecedorId: '',
-      categoria: '',
-      status: '',
-    });
-  };
-
-  const handleOpen = (item = null) => {
-    if (item) {
-      // Formatar datas para o formato YYYY-MM-DD esperado pelo input type="date"
-      const formatDate = (date) => {
-        if (!date) return '';
-        // Se a data já está no formato correto, retorna
-        if (/^\d{4}-\d{2}-\d{2}$/.test(date)) return date;
-        // Se tem hora, pega apenas a parte da data
-        if (date.includes('T')) return date.split('T')[0];
-        // Tenta converter outros formatos (DD/MM/YYYY, etc)
-        try {
-          const dateObj = new Date(date);
-          if (!isNaN(dateObj.getTime())) {
-            return dateObj.toISOString().split('T')[0];
-          }
-        } catch (e) {
-          console.error('Erro ao formatar data:', e);
-        }
-        return '';
-      };
-
-      setFormData({
-        ...item,
-        dataCompetencia: formatDate(item.dataCompetencia),
-        dataVencimento: formatDate(item.dataVencimento),
-        dataRealizacao: formatDate(item.dataRealizacao),
-        valor: item.valorParcela,
-        numeroParcela: item.numeroParcela || 1,
-      });
-      setEditingId(item.id);
-    } else {
-      setFormData({
-        categoriaId: '',
-        pessoaId: '',
-        valor: '',
-        dataCompetencia: '',
-        dataVencimento: '',
-        dataRealizacao: '',
-        totalParcelas: 1,
-        numeroParcela: 1,
-        numeroDocumento: '',
-        origem: 'Manual',
-        origemId: null,
-        observacao: '',
-        valorParcela: '',
-        lancarDiferenca: false,
-      });
-      setEditingId(null);
-    }
-    setOpen(true);
-  };
-
-  const handleClose = () => {
-    setOpen(false);
-    setEditingId(null);
-  };
-
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    const newValue = type === 'checkbox' ? checked : value;
-    const updatedFormData = { ...formData, [name]: newValue };
-    
-    // Limpar origemId quando origem for Manual
-    if (name === 'origem' && newValue === 'Manual') {
-      updatedFormData.origemId = null;
-    }
-    
-    // Calcular valor da parcela automaticamente
-    if (name === 'valor' || name === 'totalParcelas') {
-      const valor = name === 'valor' ? parseFloat(newValue) || 0 : parseFloat(formData.valor) || 0;
-      const parcelas = name === 'totalParcelas' ? parseInt(newValue) || 1 : parseInt(formData.totalParcelas) || 1;
-      
-      if (valor > 0 && parcelas > 0) {
-        updatedFormData.valorParcela = (valor / parcelas).toFixed(2);
-      } else {
-        updatedFormData.valorParcela = '';
-      }
-    }
-    
-    setFormData(updatedFormData);
-  };
-
-  const handleSubmit = async () => {
-    try {
-      // Preparar dados para envio
-      const dataToSend = {
-        ...formData,
-        totalParcelas: parseInt(formData.totalParcelas || 1, 10),
-        numeroParcela: parseInt(formData.numeroParcela || 1, 10),
-        valor: parseFloat(formData.valor || 0),
-        valorParcela: parseFloat(formData.valorParcela || 0),
-        origemId: formData.origem === 'Manual' ? null : formData.origemId,
-        dataCompetencia: formatToISO(formData.dataCompetencia),
-        dataVencimento: formatToISO(formData.dataVencimento),
-        dataRealizacao: formData.dataRealizacao ? formatToISO(formData.dataRealizacao) : null,
-      };
-
-      console.log('Dados a serem enviados:', dataToSend);
-      
-      if (editingId) {
-        await financeService.update(editingId, dataToSend);
-      } else {
-        await financeService.create(dataToSend);
-      }
-      loadData();
-      handleClose();
-    } catch (error) {
-      console.error(`Erro ao salvar conta a ${isPagar ? 'pagar' : 'receber'}:`, error);
-      alert(`Erro ao salvar conta a ${isPagar ? 'pagar' : 'receber'}. Verifique os dados e tente novamente.`);
-    }
-  };
-
-  const handleDelete = async (id) => {
-    if (window.confirm('Excluir este lançamento?')) {
-      try {
-        await financeService.delete(id);
-        loadData();
-      } catch (error) {
-        console.error(`Erro ao excluir conta a ${isPagar ? 'pagar' : 'receber'}:`, error);
-        alert(`Erro ao excluir conta a ${isPagar ? 'pagar' : 'receber'}.`);
-      }
-    }
-  };
-
-  // Função para abrir diálogo de pagamento
-  const handlePaymentOpen = (finance) => {
-    setSelectedFinance(finance);
-    setPaymentAmount(finance.valorParcela); // Inicializa com o valor total
-    setPaymentDate(new Date().toISOString().split('T')[0]); // Data atual
-    setSelectedPaymentMethod('');
-    setPaymentOpen(true);
-  };
-
-  const handlePaymentClose = () => {
-    setPaymentOpen(false);
-    setSelectedFinance(null);
-    setPaymentAmount('');
-    setPaymentDate('');
-    setSelectedPaymentMethod('');
-  };
-
-  // Processar pagamento
-  const handlePaymentSubmit = async () => {
-    if (!selectedFinance || !paymentAmount) {
-      alert('Informe o valor do pagamento');
-      return;
-    }
-
-    if (!selectedPaymentMethod) {
-      alert('Selecione a forma de pagamento');
-      return;
-    }
-
-    if (!paymentDate) {
-      alert('Informe a data de realização do pagamento');
-      return;
-    }
-
-    const valorPago = parseFloat(paymentAmount);
-    const valorTotal = parseFloat(selectedFinance.valorParcela);
-
-    if (valorPago <= 0) {
-      alert('O valor do pagamento deve ser maior que zero');
-      return;
-    }
-
-    try {
-       if (valorPago < valorTotal) {
-        // Pagamento parcial - perguntar se quer lançar diferença
-        const lancarDiferenca = window.confirm(
-          `O valor pago (R$ ${valorPago.toFixed(2)}) é menor que o valor total (R$ ${valorTotal.toFixed(2)}).\n\n` +
-          `Deseja lançar a diferença de R$ ${(valorTotal - valorPago).toFixed(2)} como um novo lançamento?`
-        );
-
-        // Atualizar conta original com valor pago
-        await financeService.payment(selectedFinance.id, {
-          ...selectedFinance,
-          valorPago: valorPago,
-          dataRealizacao: formatToISO(paymentDate),
-          formaPagamentoId: selectedPaymentMethod,
-          lancarDiferenca: lancarDiferenca,
-          observacao: `${selectedFinance.observacao || ''} [Pagamento Parcial - Valor Original: R$ ${valorTotal.toFixed(2)}]`.trim(),
-        });
-
-      } else {
-        // Pagamento total
-        await financeService.payment(selectedFinance.id, {
-          ...selectedFinance,
-          valorPago: valorPago,
-          dataRealizacao: formatToISO(paymentDate),
-          formaPagamentoId: selectedPaymentMethod,
-        });
-      }
-
-      loadData();
-      handlePaymentClose();
-
-    } catch (error) {
-      console.error('Erro ao processar pagamento:', error);
-      alert('Erro ao processar pagamento.');
-    }
-  };
-
-  const getPessoaName = (pessoaId) => {
-    if (!pessoaId) return '-';
-    
-    // Tentar encontrar em fornecedores/postos (contas a pagar)
-    const supplier = suppliers.find(s => s.pessoaId === pessoaId);
-    if (supplier) return supplier.name;
-    
-    const station = gasStations.find(g => g.pessoaId === pessoaId);
-    if (station) return station.name;
-    
-    // Tentar encontrar em clientes (contas a receber)
-    const client = clients.find(c => c.pessoaId === pessoaId);
-    if (client) return client.name;
-    
-    return '-';
-  };
-
-  const getCategoriaName = (categoriaId) => {
-    if (!categoriaId) return '-';
-    const categoria = categorias.find(c => c.id === categoriaId);
-    return categoria ? categoria.name : '-';
-  };
-
-  const calculateTotals = () => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    let totalEmAberto = 0;
-    let totalEmAtraso = 0;
-    let totalPago = 0;
-
-    filteredFinance.forEach(item => {
-      const valor = parseFloat(item.valorParcela || 0);
-      const vencimento = new Date(item.dataVencimento);
-      vencimento.setHours(0, 0, 0, 0);
-
-      if (item.dataRealizacao) {
-        totalPago += valor;
-      } else if (vencimento < today) {
-        totalEmAtraso += valor;
-      } else {
-        totalEmAberto += valor;
-      }
-    });
-
-    return {
-      totalEmAberto,
-      totalEmAtraso,
-      totalPago
-    };
-  };
-
+export default function ContasPagar({
+  isPagar,
+  filteredFinance,
+  categorias,
+  allFornecedores,
+  paymentMethods,
+  filters,
+  formData,
+  open,
+  paymentOpen,
+  selectedFinance,
+  paymentAmount,
+  paymentDate,
+  selectedPaymentMethod,
+  editingId,
+  handleFilterChange,
+  clearFilters,
+  handleOpen,
+  handleClose,
+  handleChange,
+  handleSubmit,
+  handleDelete,
+  handlePaymentOpen,
+  handlePaymentClose,
+  handlePaymentSubmit,
+  setPaymentAmount,
+  setPaymentDate,
+  setSelectedPaymentMethod,
+  getCategoriaName,
+  getPessoaName,
+  calculateTotals,
+}) {
   const totals = calculateTotals();
-
-  const allFornecedores = isPagar ? [
-    ...suppliers.map(s => ({ ...s, pessoaId: s.pessoaId })),
-    ...gasStations.map(g => ({ ...g, pessoaId: g.pessoaId }))
-  ] : [
-    ...clients.map(c => ({ ...c, pessoaId: c.pessoaId }))
-  ];
 
   return (
     <Box>
@@ -507,7 +117,7 @@ export default function ContasPagar() {
                 label="Status"
               >
                 <MenuItem value="">Todos</MenuItem>
-                <MenuItem value="EM_ABERTO">Em Aberto</MenuItem>
+                <MenuItem value="EM_ABERTO">A Vencer</MenuItem>
                 <MenuItem value="EM_ATRASO">Em Atraso</MenuItem>
                 <MenuItem value={isPagar ? 'PAGO' : 'RECEBIDO'}>{isPagar ? 'Pago' : 'Recebido'}</MenuItem>
               </Select>
@@ -527,7 +137,7 @@ export default function ContasPagar() {
         </Grid>
         <Box mt={2}>
           <Typography variant="body2" color="textSecondary">
-            Exibindo {filteredFinance.length} de {finance.length} registros
+            Exibindo {filteredFinance.length} registros
           </Typography>
         </Box>
       </Paper>
@@ -535,19 +145,19 @@ export default function ContasPagar() {
       {/* Totalização */}
       <Grid container spacing={2} sx={{ mb: 3 }}>
         <Grid item xs={12} sm={4}>
-          <Card sx={{ bgcolor: '#e3f2fd' }}>
+          <Card>
             <CardContent>
               <Typography variant="subtitle2" color="textSecondary" gutterBottom>
-                Total Em Aberto
+                Total A Vencer
               </Typography>
               <Typography variant="h5" color="primary">
-                R$ {totals.totalEmAberto.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                R$ {totals.totalAVencer.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </Typography>
             </CardContent>
           </Card>
         </Grid>
         <Grid item xs={12} sm={4}>
-          <Card sx={{ bgcolor: '#fff3e0' }}>
+          <Card>
             <CardContent>
               <Typography variant="subtitle2" color="textSecondary" gutterBottom>
                 Total Em Atraso
@@ -559,7 +169,7 @@ export default function ContasPagar() {
           </Card>
         </Grid>
         <Grid item xs={12} sm={4}>
-          <Card sx={{ bgcolor: '#e8f5e9' }}>
+          <Card>
             <CardContent>
               <Typography variant="subtitle2" color="textSecondary" gutterBottom>
                 Total {isPagar ? 'Pago' : 'Recebido'}
