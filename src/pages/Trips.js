@@ -211,7 +211,7 @@ function Trips() {
       } else {
         await tripService.create(dataToSummit);
       }
-      await loadData();
+      await loadTrips(filterMonth, filterYear);
       handleClose();
     } catch (error) {
       console.error('Erro ao salvar viagem:', error);
@@ -223,7 +223,7 @@ function Trips() {
     if (window.confirm('Deseja realmente excluir esta viagem?')) {
       try {
         await tripService.delete(id);
-        await loadData();
+        await loadTrips(filterMonth, filterYear);
       } catch (error) {
         console.error('Erro ao excluir viagem:', error);
         alert('Erro ao excluir a viagem.');
