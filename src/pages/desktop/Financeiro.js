@@ -215,7 +215,7 @@ export default function ContasPagar({
                 <TableCell>{formatDateBR(item.dataVencimento)}</TableCell>
                 <TableCell>{formatDateBR(item.dataRealizacao)}</TableCell>
                 <TableCell>
-                  {parseFloat(item.valorPago).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  {item.valorPago ? parseFloat(item.valorPago).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '-'}
                 </TableCell>
                 <TableCell align="right">
                   {!item.dataRealizacao && (
