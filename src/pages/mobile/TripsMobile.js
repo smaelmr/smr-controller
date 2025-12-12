@@ -148,32 +148,46 @@ export default function TripsMobile({
         <DialogTitle>Filtros</DialogTitle>
         <DialogContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
-            <DateInputNative
-              label="Data Inicial"
-              name="dataInicial"
-              value={filters.dataInicial}
-              onChange={handleFilterChange}
-              fullWidth
-            />
-            <DateInputNative
-              label="Data Final"
-              name="dataFinal"
-              value={filters.dataFinal}
-              onChange={handleFilterChange}
-              fullWidth
-            />
             <FormControl fullWidth>
-              <InputLabel>Cliente</InputLabel>
+              <InputLabel>Mês</InputLabel>
               <Select
-                name="clienteId"
-                value={filters.clienteId}
+                name="mes"
+                value={filters.mes}
                 onChange={handleFilterChange}
-                label="Cliente"
+                label="Mês"
+              >
+                {[...Array(12)].map((_, i) => (
+                  <MenuItem key={i + 1} value={i + 1}>
+                    {new Date(2000, i).toLocaleString('pt-BR', { month: 'long' })}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <FormControl fullWidth>
+              <InputLabel>Ano</InputLabel>
+              <Select
+                name="ano"
+                value={filters.ano}
+                onChange={handleFilterChange}
+                label="Ano"
+              >
+                {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - 2 + i).map(year => (
+                  <MenuItem key={year} value={year}>{year}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <FormControl fullWidth>
+              <InputLabel>Veículo</InputLabel>
+              <Select
+                name="veiculoId"
+                value={filters.veiculoId}
+                onChange={handleFilterChange}
+                label="Veículo"
               >
                 <MenuItem value="">Todos</MenuItem>
-                {clients.map((client) => (
-                  <MenuItem key={client.id} value={client.id}>
-                    {client.name}
+                {vehicles.map((vehicle) => (
+                  <MenuItem key={vehicle.id} value={vehicle.id}>
+                    {vehicle.placa}
                   </MenuItem>
                 ))}
               </Select>

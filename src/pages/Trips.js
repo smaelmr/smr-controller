@@ -57,44 +57,47 @@ function Trips() {
     observacao: '',
   });
 
-  // Estados dos filtros
-  const [filters, setFilters] = useState({
-    dataInicial: '',
-    dataFinal: '',
-    clienteId: '',
-    motoristaId: '',
-  });
+  // Filters: month, year, vehicle, driver
+  const now = new Date();
+  const defaultMonth = now.getMonth() + 1;
+  const defaultYear = now.getFullYear();
+  const [filterMonth, setFilterMonth] = useState(defaultMonth);
+  const [filterYear, setFilterYear] = useState(defaultYear);
+  const [filterVehicle, setFilterVehicle] = useState('');
+  const [filterDriver, setFilterDriver] = useState('');
 
   useEffect(() => {
     const fetchData = async () => {
-      await loadData();
+      await loadStaticData();
     };
     fetchData();
   }, []);
 
   useEffect(() => {
-    applyFilters();
-  }, [trips, filters]);
+    loadTrips(filterMonth, filterYear);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterMonth, filterYear]);
 
-  const loadData = async () => {
+  useEffect(() => {
+    applyLocalFilters();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [trips, filterVehicle, filterDriver]);
+
+  const loadStaticData = async () => {
     try {
-      const [tripsData, clientsData, driversData, vehiclesData, citiesData] = await Promise.all([
-        tripService.getAll(),
+      const [clientsData, driversData, vehiclesData, citiesData] = await Promise.all([
         clientService.getAll(),
         driverService.getAll(),
         vehicleService.getAll(),
         cityService.getAll()
       ]);
 
-      setTrips(Array.isArray(tripsData) ? tripsData : []);
       setClients(Array.isArray(clientsData) ? clientsData : []);
       setDrivers(Array.isArray(driversData) ? driversData : []);
       setVehicles(Array.isArray(vehiclesData) ? vehiclesData : []);
       setCities(Array.isArray(citiesData) ? citiesData : []);
     } catch (error) {
-      console.error('Erro ao carregar dados:', error);
-      // Inicializar com arrays vazios em caso de erro
-      setTrips([]);
+      console.error('Erro ao carregar dados estáticos:', error);
       setClients([]);
       setDrivers([]);
       setVehicles([]);
@@ -102,33 +105,30 @@ function Trips() {
     }
   };
 
-  const applyFilters = () => {
+  const loadTrips = async (month, year) => {
+    try {
+      const tripsData = await tripService.getByMonthYear(month, year);
+      setTrips(Array.isArray(tripsData) ? tripsData : []);
+    } catch (error) {
+      console.error('Erro ao carregar viagens:', error);
+      setTrips([]);
+    }
+  };
+
+  const applyLocalFilters = () => {
     let filtered = [...trips];
 
-    // Filtro por período de coleta
-    if (filters.dataInicial) {
+    // Filtro por veículo
+    if (filterVehicle) {
       filtered = filtered.filter(item => 
-        item.dataColeta >= filters.dataInicial
-      );
-    }
-
-    if (filters.dataFinal) {
-      filtered = filtered.filter(item => 
-        item.dataColeta <= filters.dataFinal
-      );
-    }
-
-    // Filtro por cliente
-    if (filters.clienteId) {
-      filtered = filtered.filter(item => 
-        item.clienteId === parseInt(filters.clienteId)
+        item.veiculoId === parseInt(filterVehicle)
       );
     }
 
     // Filtro por motorista
-    if (filters.motoristaId) {
+    if (filterDriver) {
       filtered = filtered.filter(item => 
-        item.motoristaId === parseInt(filters.motoristaId)
+        item.motoristaId === parseInt(filterDriver)
       );
     }
 
@@ -136,16 +136,19 @@ function Trips() {
   };
 
   const handleFilterChange = (e) => {
-    setFilters({ ...filters, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    if (name === 'mes') setFilterMonth(value);
+    else if (name === 'ano') setFilterYear(value);
+    else if (name === 'veiculoId') setFilterVehicle(value);
+    else if (name === 'motoristaId') setFilterDriver(value);
   };
 
   const clearFilters = () => {
-    setFilters({
-      dataInicial: '',
-      dataFinal: '',
-      clienteId: '',
-      motoristaId: '',
-    });
+    const now = new Date();
+    setFilterMonth(now.getMonth() + 1);
+    setFilterYear(now.getFullYear());
+    setFilterVehicle('');
+    setFilterDriver('');
   };
 
   const handleOpen = (trip = null) => {
@@ -249,6 +252,13 @@ function Trips() {
   };
 
   if (isMobile) {
+    const filters = {
+      mes: filterMonth,
+      ano: filterYear,
+      veiculoId: filterVehicle,
+      motoristaId: filterDriver
+    };
+
     return (
       <TripsMobile
         filteredTrips={filteredTrips}
@@ -291,52 +301,62 @@ function Trips() {
           <Typography variant="h6">Filtros</Typography>
         </Box>
         <Grid container spacing={2}>
-          <Grid item xs={12} sm={6} md={2.5}>
-            <DateInputNative
-              label="Data Inicial"
-              name="dataInicial"
-              value={filters.dataInicial}
-              onChange={handleFilterChange}
-              fullWidth
-              size="small"
-              sx={{ width: 180 }}  // Largura fixa em pixels
-            />
-          </Grid>
-          <Grid item xs={12} sm={6} md={2.5}>
-            <DateInputNative
-              label="Data Final"
-              name="dataFinal"
-              value={filters.dataFinal}
-              onChange={handleFilterChange}
-              fullWidth
-              size="small"
-              sx={{ width: 180 }}  // Largura fixa em pixels
-            />
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <FormControl fullWidth size="small" sx={{ minWidth: 200 }}>
-              <InputLabel>Cliente</InputLabel>
+          <Grid item xs={12} sm={6} md={2}>
+            <FormControl fullWidth size="small" sx={{ minWidth: 120 }}>
+              <InputLabel>Mês</InputLabel>
               <Select
-                name="clienteId"
-                value={filters.clienteId}
+                name="mes"
+                value={filterMonth}
                 onChange={handleFilterChange}
-                label="Cliente"
+                label="Mês"
               >
-                <MenuItem value="">Todos</MenuItem>
-                {clients.map((client) => (
-                  <MenuItem key={client.id} value={client.id}>
-                    {client.name}
+                {[...Array(12)].map((_, i) => (
+                  <MenuItem key={i + 1} value={i + 1}>
+                    {new Date(2000, i).toLocaleString('pt-BR', { month: 'long' })}
                   </MenuItem>
                 ))}
               </Select>
             </FormControl>
           </Grid>
           <Grid item xs={12} sm={6} md={2}>
+            <FormControl fullWidth size="small" sx={{ minWidth: 120 }}>
+              <InputLabel>Ano</InputLabel>
+              <Select
+                name="ano"
+                value={filterYear}
+                onChange={handleFilterChange}
+                label="Ano"
+              >
+                {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - 2 + i).map(year => (
+                  <MenuItem key={year} value={year}>{year}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <FormControl fullWidth size="small" sx={{ minWidth: 200 }}>
+              <InputLabel>Veículo</InputLabel>
+              <Select
+                name="veiculoId"
+                value={filterVehicle}
+                onChange={handleFilterChange}
+                label="Veículo"
+              >
+                <MenuItem value="">Todos</MenuItem>
+                {vehicles.map((vehicle) => (
+                  <MenuItem key={vehicle.id} value={vehicle.id}>
+                    {vehicle.placa}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
             <FormControl fullWidth size="small" sx={{ minWidth: 150 }}>
               <InputLabel>Motorista</InputLabel>
               <Select
                 name="motoristaId"
-                value={filters.motoristaId}
+                value={filterDriver}
                 onChange={handleFilterChange}
                 label="Motorista"
               >
@@ -363,7 +383,7 @@ function Trips() {
         </Grid>
         <Box mt={2}>
           <Typography variant="body2" color="textSecondary">
-            Exibindo {filteredTrips.length} de {trips.length} registros
+            Exibindo {filteredTrips.length} registros
           </Typography>
         </Box>
       </Paper>
