@@ -245,10 +245,9 @@ export default function FinanceiroMobile({
                 label="Status"
               >
                 <MenuItem value="">Todos</MenuItem>
-                <MenuItem value="EM_ABERTO">Em Aberto</MenuItem>
+                <MenuItem value="A_VENCER">A Vencer</MenuItem>
                 <MenuItem value="EM_ATRASO">Em Atraso</MenuItem>
-                <MenuItem value={isPagar ? 'PAGO' : 'RECEBIDO'}>
-                  {isPagar ? 'Pago' : 'Recebido'}
+                <MenuItem value="PAGO">{isPagar ? 'Pago' : 'Recebido'}
                 </MenuItem>
               </Select>
             </FormControl>

@@ -93,12 +93,11 @@ export default function ContasPagar({
             <FormControl fullWidth size="small" sx={{ minWidth: 150 }}>
               <InputLabel>Categoria</InputLabel>
               <Select
-                name="categoria"
+                name="categoriaId"
                 value={filters.categoriaId}
                 onChange={handleFilterChange}
                 label="Categoria"
               >
-                <MenuItem value="">Todas</MenuItem>
                 {categorias.map((cat) => (
                   <MenuItem key={cat.id} value={cat.id}>
                     {cat.name}
@@ -117,9 +116,9 @@ export default function ContasPagar({
                 label="Status"
               >
                 <MenuItem value="">Todos</MenuItem>
-                <MenuItem value="EM_ABERTO">A Vencer</MenuItem>
+                <MenuItem value="A_VENCER">A Vencer</MenuItem>
                 <MenuItem value="EM_ATRASO">Em Atraso</MenuItem>
-                <MenuItem value={isPagar ? 'PAGO' : 'RECEBIDO'}>{isPagar ? 'Pago' : 'Recebido'}</MenuItem>
+                <MenuItem value="PAGO">{isPagar ? 'Pago' : 'Recebido'}</MenuItem>
               </Select>
             </FormControl>
           </Grid>

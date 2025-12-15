@@ -116,7 +116,7 @@ export default function FinanceiroWrapper() {
         const vencimento = new Date(item.dataVencimento);
         vencimento.setHours(0, 0, 0, 0);
 
-        if (filterStatus === 'EM_ABERTO') {
+        if (filterStatus === 'A_VENCER') {
           return !item.dataRealizacao && vencimento >= today;
         } else if (filterStatus === 'EM_ATRASO') {
           return !item.dataRealizacao && vencimento < today;
@@ -136,6 +136,7 @@ export default function FinanceiroWrapper() {
   }, [filterCategoria, filterStatus, finance]);
 
   const handleFilterChange = (e) => {
+
     const { name, value } = e.target;
     if (name === 'mes') setFilterMonth(value);
     else if (name === 'ano') setFilterYear(value);
@@ -240,20 +241,10 @@ export default function FinanceiroWrapper() {
         valorParcela: parseFloat(formData.valorParcela),
       };
 
-      console.log('Dados a serem enviados:', dataToSubmit);
-
       if (editingId) {
-        if (isPagar) {
-          await financeService.updatePayment(editingId, dataToSubmit);
-        } else {
-          await financeService.updateReceipt(editingId, dataToSubmit);
-        }
+          await financeService.update(editingId, dataToSubmit);
       } else {
-        if (isPagar) {
-          await financeService.createPayment(dataToSubmit);
-        } else {
-          await financeService.createReceipt(dataToSubmit);
-        }
+          await financeService.create(dataToSubmit);
       }
 
       loadData();
@@ -383,12 +374,13 @@ export default function FinanceiroWrapper() {
 
     filteredFinance.forEach(item => {
       const valor = parseFloat(item.valorParcela || 0);
+      const valorPago = parseFloat(item.valorPago || 0);
       const vencimento = new Date(item.dataVencimento);
       vencimento.setHours(0, 0, 0, 0);
 
       if (item.dataRealizacao) {
         // Pago
-        totalPago += valor;
+        totalPago += valorPago;
       } else if (vencimento < today) {
         // Em Atraso
         totalEmAtraso += valor;
