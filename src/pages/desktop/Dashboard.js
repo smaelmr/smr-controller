@@ -237,7 +237,7 @@ function Dashboard() {
         <Grid item xs={12} sm={6} lg={3} sx={{ display: 'flex' }}>
           <StatCard
             title="Sobra Estimada"
-            value={`R$ ${(stats.totalFretes - stats.totalAbastecimento).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+            value={`R$ ${(stats.totalFretes - stats.totalAbastecimento - (stats.totalFretes * 0.13)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
             icon={<TrendingUp sx={{ fontSize: 40 }} />}
             color="info.main"
           />

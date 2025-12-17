@@ -55,7 +55,7 @@ export default function DashboardMobile({
     </Card>
   );
 
-  const lucro = stats.totalFretes - stats.totalAbastecimento;
+  const lucro = stats.totalFretes - stats.totalAbastecimento - (stats.totalFretes * 0.13);
 
   return (
     <Box sx={{ pb: 2 }}>
