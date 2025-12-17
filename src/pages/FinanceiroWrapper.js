@@ -42,6 +42,7 @@ export default function FinanceiroWrapper() {
     numeroParcela: 1,
     valorParcela: '',
     lancarDiferenca: false,
+    formaPagamentoId: '',
   });
 
   // Filters: month, year, categoria, status
@@ -177,6 +178,7 @@ export default function FinanceiroWrapper() {
         numeroParcela: finance.numeroParcela || 1,
         valorParcela: finance.valorParcela || '',
         lancarDiferenca: false,
+        formaPagamentoId: finance.formaPagamentoId || '',
       });
     } else {
       setEditingId(null);
@@ -195,6 +197,7 @@ export default function FinanceiroWrapper() {
         numeroParcela: 1,
         valorParcela: '',
         lancarDiferenca: false,
+        formaPagamentoId: '',
       });
     }
     setOpen(true);
@@ -239,7 +242,13 @@ export default function FinanceiroWrapper() {
         totalParcelas: editingId ? 1 : parseInt(formData.totalParcelas),
         numeroParcela: editingId ? parseInt(formData.numeroParcela) : 1,
         valorParcela: parseFloat(formData.valorParcela),
+        formaPagamentoId: formData.formaPagamentoId ? parseInt(formData.formaPagamentoId) : null,
       };
+
+      // Se dataRealizacao for informada, insira valorPago
+      if (dataToSubmit.dataRealizacao) {
+        dataToSubmit.valorPago = dataToSubmit.valorParcela;
+      }
 
       if (editingId) {
           await financeService.update(editingId, dataToSubmit);
@@ -247,7 +256,7 @@ export default function FinanceiroWrapper() {
           await financeService.create(dataToSubmit);
       }
 
-      loadData();
+      loadData(filterMonth, filterYear);
       handleClose();
     } catch (error) {
       console.error('Erro ao salvar:', error);
@@ -302,51 +311,27 @@ export default function FinanceiroWrapper() {
         return;
       }
 
+      let lancarDiferenca = false;
+
+      if (valorPago < valorOriginal) {
+        lancarDiferenca = window.confirm(
+          `O valor pago (R$ ${valorPago.toFixed(2)}) é menor que o valor total (R$ ${valorOriginal.toFixed(2)}).\n\nDeseja lançar a diferença de R$ ${(valorOriginal - valorPago).toFixed(2)} como um novo lançamento?`
+        );
+      }
+
       const dataToUpdate = {
         ...selectedFinance,
         dataRealizacao: formatToISO(paymentDate),
         valorPago: valorPago,
         formaPagamentoId: parseInt(selectedPaymentMethod),
         numeroParcela: parseInt(selectedFinance.numeroParcela),
+        lancarDiferenca: lancarDiferenca,
       };
 
-      if (isPagar) {
-        await financeService.updatePayment(selectedFinance.id, dataToUpdate);
-      } else {
-        await financeService.updateReceipt(selectedFinance.id, dataToUpdate);
-      }
+      await financeService.payment(selectedFinance.id, dataToUpdate);
 
-      if (valorPago < valorOriginal) {
-        const lancaDiferenca = window.confirm(
-          `O valor pago (R$ ${valorPago.toFixed(2)}) é menor que o valor total (R$ ${valorOriginal.toFixed(2)}).\n\nDeseja lançar a diferença de R$ ${(valorOriginal - valorPago).toFixed(2)} como um novo lançamento?`
-        );
-
-        if (lancaDiferenca) {
-          const novoLancamento = {
-            categoriaId: selectedFinance.categoriaId,
-            pessoaId: selectedFinance.pessoaId,
-            valor: valorOriginal - valorPago,
-            valorParcela: valorOriginal - valorPago,
-            totalParcelas: 1,
-            numeroParcela: 1,
-            dataCompetencia: selectedFinance.dataCompetencia,
-            dataVencimento: selectedFinance.dataVencimento,
-            numeroDocumento: selectedFinance.numeroDocumento,
-            origem: 'Manual',
-            origemId: null,
-            observacao: `Diferença do lançamento ${selectedFinance.numeroDocumento || selectedFinance.id}`,
-          };
-
-          if (isPagar) {
-            await financeService.createPayment(novoLancamento);
-          } else {
-            await financeService.createReceipt(novoLancamento);
-          }
-        }
-      }
-
-      loadData();
       handlePaymentClose();
+      loadData(filterMonth, filterYear);
     } catch (error) {
       console.error('Erro ao processar pagamento:', error);
       alert('Erro ao processar o pagamento.');

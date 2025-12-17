@@ -366,6 +366,23 @@ export default function ContasPagar({
               fullWidth
             />
 
+            <FormControl fullWidth>
+              <InputLabel>Forma de Pagamento</InputLabel>
+              <Select
+                name="formaPagamentoId"
+                value={formData.formaPagamentoId}
+                onChange={handleChange}
+                label="Forma de Pagamento"
+              >
+                <MenuItem value="">Selecione uma forma de pagamento</MenuItem>
+                {paymentMethods.map((method) => (
+                  <MenuItem key={method.id} value={method.id}>
+                    {method.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
             <TextField
               label="Observação"
               name="observacao"

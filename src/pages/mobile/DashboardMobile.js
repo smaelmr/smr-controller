@@ -17,6 +17,7 @@ import {
   Speed,
   TrendingUp,
   DirectionsCar,
+  Percent,
 } from '@mui/icons-material';
 
 export default function DashboardMobile({
@@ -143,7 +144,14 @@ export default function DashboardMobile({
         />
 
         <StatCardMobile
-          title="Lucro Estimado"
+          title="Comissão (13%)"
+          value={`R$ ${(stats.totalFretes * 0.13).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+          icon={<Percent sx={{ fontSize: 32 }} />}
+          color="warning.main"
+        />
+
+        <StatCardMobile
+          title="Sobra Estimado"
           value={`R$ ${lucro.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
           icon={<TrendingUp sx={{ fontSize: 32 }} />}
           color={lucro >= 0 ? 'info.main' : 'error.main'}

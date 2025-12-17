@@ -15,6 +15,7 @@ import {
   LocalGasStation,
   Speed,
   TrendingUp,
+  Percent,
 } from '@mui/icons-material';
 import { tripService, fuelingService, vehicleService } from '../../services/services';
 
@@ -226,19 +227,28 @@ function Dashboard() {
 
         <Grid item xs={12} sm={6} lg={3} sx={{ display: 'flex' }}>
           <StatCard
-            title="Média Consumo Geral"
-            value={`${stats.mediaConsumoGeral} km/l`}
-            icon={<Speed sx={{ fontSize: 40 }} />}
-            color="primary.main"
+            title="Comissão (13%)"
+            value={`R$ ${(stats.totalFretes * 0.13).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+            icon={<Percent sx={{ fontSize: 40 }} />}
+            color="warning.main"
           />
         </Grid>
 
         <Grid item xs={12} sm={6} lg={3} sx={{ display: 'flex' }}>
           <StatCard
-            title="Lucro Estimado"
+            title="Sobra Estimada"
             value={`R$ ${(stats.totalFretes - stats.totalAbastecimento).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
             icon={<TrendingUp sx={{ fontSize: 40 }} />}
             color="info.main"
+          />
+        </Grid>
+
+        <Grid item xs={12} sm={6} lg={3} sx={{ display: 'flex' }}>
+          <StatCard
+            title="Média Consumo Geral"
+            value={`${stats.mediaConsumoGeral} km/l`}
+            icon={<Speed sx={{ fontSize: 40 }} />}
+            color="primary.main"
           />
         </Grid>
 
